@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 
 
 
-const useCalcularPagoEfectivo=(formData,recibos)=>{
+const useCalcularPagoEfectivo=(formData)=>{
 
   const [pagoEfectivo, setPagoEfectivo] = useState("0.00");
 
@@ -12,12 +12,11 @@ const useCalcularPagoEfectivo=(formData,recibos)=>{
       const montoSistema = parseFloat(formData.montoSistema) || 0;
       const pagoQR = parseFloat(formData.pagoQR) || 0;
       const pagoBaucher = parseFloat(formData.pagoBaucher) || 0;
-
-      const totalRecibos = recibos.reduce((sum, recibo) => sum + recibo.monto, 0);
+      const pagoRecibo=parseFloat(formData.pagoRecibo) || 0
 
       let montoAPagar = montoSistema;
       if (formData.contarReciboComoPago) {
-        montoAPagar = montoSistema - totalRecibos;
+        montoAPagar = montoSistema - pagoRecibo;
       }
 
       const nuevoPagoEfectivo = montoAPagar - pagoQR - pagoBaucher;
@@ -25,7 +24,7 @@ const useCalcularPagoEfectivo=(formData,recibos)=>{
     };
 
     calcularPagoEfectivo();
-  }, [formData, recibos]);
+  }, [formData]);
 
   return { pagoEfectivo };
 };

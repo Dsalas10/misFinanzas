@@ -3,7 +3,7 @@ import { Box, Paper, Typography, Grid } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
-import useDialog from "../../Hooks/useDialogs";
+import useDialogConfirm from "../../Hooks/useDialogConfirm";
 import ConfirmDialog from "../../Dialogs/ConfirmDialog";
 import ReusableTable from "../../Table/ReuseTable";
 import FormEvento from "./FormEvento";
@@ -30,14 +30,12 @@ const EventComponent = () => {
     montoSistema: "",
     incluirReciboEnVenta: false,
     contarReciboComoPago: false,
-    nuevoRecibo: "",
+    pagoRecibo: "",
     pagoQR: "",
     pagoBaucher: "",
     pagoEfectivo: "0.00",
     propina: "",
   });
-
-  const [recibos, setRecibos] = useState([]);
   const [ventas, setVentas] = useState([]);
   const [errors, setErrors] = useState({
     fecha: false,
@@ -52,10 +50,9 @@ const EventComponent = () => {
     openAddDialog,
     openDeleteDialog,
     closeDialog,
-  } = useDialog();
+  } = useDialogConfirm();
 
-  const {pagoEfectivo}=useCalcularPagoEfectivo(formData,recibos)
-
+  const { pagoEfectivo } = useCalcularPagoEfectivo(formData);
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -78,28 +75,10 @@ const EventComponent = () => {
     return !newErrors.fecha && !newErrors.montoSistema;
   };
 
- 
-
   const handleOpenAddDialog = () => {
     if (validateForm()) {
       openAddDialog();
     }
-  };
-
-  const handleAgregarRecibo = () => {
-    const monto = parseFloat(formData.nuevoRecibo);
-    if (monto && monto > 0) {
-      const nuevoRecibo = {
-        id: Date.now(),
-        monto: monto,
-      };
-      setRecibos([...recibos, nuevoRecibo]);
-      setFormData((prev) => ({ ...prev, nuevoRecibo: "" }));
-    }
-  };
-
-  const handleEliminarRecibo = (id) => {
-    setRecibos(recibos.filter((recibo) => recibo.id !== id));
   };
 
   const handleAgregarVenta = () => {
@@ -107,12 +86,10 @@ const EventComponent = () => {
     const pagoQR = parseFloat(formData.pagoQR) || 0;
     const pagoBaucher = parseFloat(formData.pagoBaucher) || 0;
     const propina = parseFloat(formData.propina) || 0;
-
-    const totalRecibos = recibos.reduce((sum, recibo) => sum + recibo.monto, 0);
-
+    const pagoRecibo = parseFloat(formData.pagoRecibo) || 0;
     var ventaTotalGeneral = montoSistema;
     if (formData.incluirReciboEnVenta) {
-      ventaTotalGeneral += totalRecibos;
+      ventaTotalGeneral += pagoRecibo;
     }
 
     const gananciaPorcentaje = parseFloat(ventaTotalGeneral * 0.05);
@@ -121,8 +98,7 @@ const EventComponent = () => {
     const nuevaVenta = {
       id: Date.now(),
       fecha: formData.fecha,
-      recibos: [...recibos],
-      totalRecibos,
+      pagoRecibo,
       pagoQR,
       pagoBaucher,
       pagoEfectivo,
@@ -143,14 +119,13 @@ const EventComponent = () => {
       montoSistema: "",
       incluirReciboEnVenta: false,
       contarReciboComoPago: false,
-      nuevoRecibo: "",
+      pagoRecibo: "",
       pagoQR: "",
       pagoBaucher: "",
       pagoEfectivo: "0.00",
       propina: "",
     });
 
-    setRecibos([]);
     setErrors({
       fecha: false,
       montoSistema: false,
@@ -180,48 +155,47 @@ const EventComponent = () => {
   ];
 
   return (
-    <Box>
-      <Typography
-        variant="h4"
-        gutterBottom
-        sx={{ mb: 1, color: "primary.main" }}
-      >
-        Registro de Ventas
-      </Typography>
-      <Grid container spacing={3} justifyContent={"center"}>
-        {/* Lado izquierdo - Formulario */}
-        <Grid container sx={{ xs: 12, md: 6 }}>
-          <Paper elevation={3} sx={{ borderRadius: 2 }}>
-            <FormEvento
-              formData={formData}
-              handleInputChange={handleInputChange}
-              handleAgregarRecibo={handleAgregarRecibo}
-              recibos={recibos}
-              errors={errors}
-              handleOpenAddDialog={handleOpenAddDialog}
-              pagoEfectivo={pagoEfectivo}
-              handleEliminarRecibo={handleEliminarRecibo}
-            />
-          </Paper>
-        </Grid>
+    <>
+      <Box sx={{ p: 1 }}>
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{ mb: 1, color: "primary.main" }}
+          textAlign={"center"}
+        >
+          Registro de Ventas
+        </Typography>
+        <Grid container spacing={2} justifyContent={"center"}>
+          {/* Lado izquierdo - Formulario */}
+          <Grid size={{ xs: 12, sm: 5 }}>
+            <Paper elevation={3} sx={{ borderRadius: 2, p: 2 }}>
+              <FormEvento
+                formData={formData}
+                handleInputChange={handleInputChange}
+                errors={errors}
+                handleOpenAddDialog={handleOpenAddDialog}
+                pagoEfectivo={pagoEfectivo}
+              />
+            </Paper>
+          </Grid>
 
-        {/* Lado derecho - Tabla de Ventas */}
-        <Grid container sx={{ xs: 12, md: 6 }}>
-          <Paper elevation={3} sx={{ borderRadius: 2 }}>
-
-          <ReusableTable columns={columns} rows={ventas} action={actions} />
-          </Paper>
+          {/* Lado derecho - Tabla de Ventas */}
+          <Grid size={{ xs: 12, sm: 7 }}>
+            <Paper elevation={3} sx={{ borderRadius: 2, p: 2 }}>
+              <ReusableTable columns={columns} rows={ventas} action={actions} />
+            </Paper>
+          </Grid>
         </Grid>
-      </Grid>
-      <ConfirmDialog
-        open={dialogOpen}
-        type={dialogType}
-        onCancel={closeDialog}
-        onConfirm={handleConfirmAction}
-        title={dialogTitle}
-        message={dialogMessage}
-      />
-    </Box>
+        <ConfirmDialog
+          open={dialogOpen}
+          type={dialogType}
+          onCancel={closeDialog}
+          onConfirm={handleConfirmAction}
+          title={dialogTitle}
+          message={dialogMessage}
+        />
+      </Box>
+    </>
   );
 };
 

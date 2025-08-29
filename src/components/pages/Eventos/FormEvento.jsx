@@ -1,22 +1,18 @@
 import React from "react";
 import {
   Box,
-  Paper,
-  Typography,
   TextField,
   Button,
   Grid,
   FormControlLabel,
   Checkbox,
 } from "@mui/material";
+
 import AddIcon from "@mui/icons-material/Add";
 import ReciboList from "./ReciboList";
 const FormEvento = ({
   formData,
   handleInputChange,
-  handleAgregarRecibo,
-  recibos,
-  handleEliminarRecibo,
   pagoEfectivo,
   handleOpenAddDialog,
   errors,
@@ -25,9 +21,15 @@ const FormEvento = ({
     <>
       {/* 
             lado izquierdo */}
-      <Grid container spacing={2} sx={{p:2}}>
-        <Grid sx={{ xs: 12  }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 ,maxWidth:200 }}>
+      <Grid container spacing={1}>
+        <Grid size={{ xs: 6 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
             <TextField
               fullWidth
               type="date"
@@ -85,23 +87,24 @@ const FormEvento = ({
                     }}
                   />
                 }
-                label={
-                  <span style={{ fontSize: "0.8rem" }}>Pago</span>
-                }
+                label={<span style={{ fontSize: "0.8rem" }}>Pago</span>}
               />
             </Box>
             <ReciboList
-              recibos={recibos}
-              handleAgregarRecibo={handleAgregarRecibo}
               formData={formData}
               handleInputChange={handleInputChange}
-              handleEliminarRecibo={handleEliminarRecibo}
             />
           </Box>
         </Grid>
         {/* lado derecho */}
-        <Grid sx={{ xs: 12 }}>
-          <Box sx={{ display: "flex", flexDirection: "column", gap: 2 , maxWidth:200}}>
+        <Grid size={{ xs: 6 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+            }}
+          >
             <TextField
               fullWidth
               label="Pago QR"
@@ -138,7 +141,7 @@ const FormEvento = ({
         </Grid>
       </Grid>
 
-      <Box sx={{ display: "flex", justifyContent: "center" }}>
+      <Box textAlign={"center"} m={1}>
         <Button
           variant="contained"
           onClick={handleOpenAddDialog}

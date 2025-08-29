@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import FormGasto from "./FormGastos";
 import ReusableTable from "../../Table/ReuseTable";
-import useDialog from "../../Hooks/useDialogs";
+import useDialogConfirm from "../../Hooks/useDialogConfirm";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ConfirmDialog from "../../Dialogs/ConfirmDialog";
 
@@ -40,7 +40,7 @@ const Gastos = () => {
     openAddDialog,
     openDeleteDialog,
     closeDialog,
-  } = useDialog();
+  } = useDialogConfirm();
 
   const [formData, setFormData] = useState({
     fecha: getCurrentDate(),
@@ -129,9 +129,9 @@ const Gastos = () => {
         >
           Registro de Gastos
         </Typography>
-        <Grid container spacing={3} justifyContent={"center"}>
-          <Grid container sx={{ xs: 12, md: 6 }}>
-            <Paper sx={{p:2}}>
+        <Grid container justifyContent={"center"} gap={2}>
+          <Grid size={{ xs: 12, md: 3 }}>
+            <Paper elevation={3} sx={{ p: 2 }}>
               <FormGasto
                 formData={formData}
                 handleInputChange={handleInputChange}
@@ -139,13 +139,13 @@ const Gastos = () => {
               />
             </Paper>
           </Grid>
-          <Grid container sx={{ xs: 12, md: 6 }}>
+          <Grid size={{ xs: 12, md: 5 }}>
             <Paper>
               <ReusableTable columns={columns} rows={gastos} action={actions} />
             </Paper>
           </Grid>
-          <Grid container sx={{ xs: 12, md: 6 }}>
-           <Paper >
+          <Grid size={{ xs: 12, md: 2 }}>
+            <Paper>
               <InputLabel>Seleccionar Mes</InputLabel>
               <Select value={seleccionMes} onChange={handleMesChange} fullWidth>
                 {Array.from({ length: 12 }, (_, index) => (
@@ -159,13 +159,13 @@ const Gastos = () => {
             </Paper>
           </Grid>
         </Grid>
-        <Typography variant="h6" sx={{ mt: 2, ml: 20 }} textAlign={"center"}>
+        {/* <Typography variant="h6" sx={{ mt: 2, ml: 20 }} textAlign={"center"}>
           Total Gastado en{" "}
           {new Date(0, seleccionMes - 1).toLocaleString("default", {
             month: "long",
           })}
           : {totalGastado.toFixed(0)}/Bs
-        </Typography>
+        </Typography> */}
         <ConfirmDialog
           open={dialogOpen}
           type={dialogType}

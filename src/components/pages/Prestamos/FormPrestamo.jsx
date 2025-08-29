@@ -13,7 +13,7 @@ const FormPrestamo = ({ formData, handleInputChange, handleOpenAddDialog }) => {
   return (
     <>
       <Grid container spacing={2}>
-        <Grid sx={{ xs: 12 }}>
+        <Grid size={{ xs: 12 }}>
           <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <TextField
               fullWidth
@@ -46,18 +46,18 @@ const FormPrestamo = ({ formData, handleInputChange, handleOpenAddDialog }) => {
               }}
             />
           </Box>
-          <Box sx={{ display: "flex", justifyContent: "center", pt: 2 }}>
+        </Grid>
+       
+         
             <Button
               variant="contained"
               onClick={handleOpenAddDialog}
               startIcon={<AddIcon />}
-              size="large"
               sx={{ px: 4, py: 1.5, pb: 2 }}
             >
               Agregar Prestamo
             </Button>
-          </Box>
-        </Grid>
+         
       </Grid>
     </>
   );

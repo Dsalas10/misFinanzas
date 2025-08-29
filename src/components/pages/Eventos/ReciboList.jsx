@@ -1,73 +1,50 @@
-import React from "react";
-import {
-  Box,
-  TextField,
-  Button,
-  List,
-  ListItem,
-  ListItemText,
-  IconButton,
-  Typography,
-} from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
-import DeleteIcon from "@mui/icons-material/Delete";
+import React, { useState } from "react";
+import { Box, TextField, Button, Typography } from "@mui/material";
 
-const ReciboList = ({
-  recibos,
-  handleAgregarRecibo,
-  formData,
-  handleInputChange,
-  handleEliminarRecibo,
-}) => {
+import ContentDialog from "../../Dialogs/ContentDialog";
+
+const ReciboList = ({ formData, handleInputChange }) => {
+  const [open, setOpen] = useState(false);
+
+  // Funciones para abrir y cerrar modal
+  const handleOpen = () => setOpen(true);
+  const handleClose = () => {
+    setOpen(false);
+    handleInputChange("pagoRecibo", "0.00");
+  };
+
+  const handleTotalRecibo = (total) => {
+    handleInputChange("pagoRecibo", total.toFixed(0));
+    setOpen(false);
+  };
   return (
     <Box>
-      {/* <Typography variant="h7">Prepagos</Typography> */}
+      <Typography>
+        Prepagos o Recibos
+      </Typography>
       <Box sx={{ display: "flex", gap: 1, mb: 1 }}>
         <TextField
           fullWidth
-          label="Nuevo Recibo"
           type="number"
-          value={formData.nuevoRecibo}
-          onChange={(e) => handleInputChange("nuevoRecibo", e.target.value)}
-          disabled={
-            !formData.contarReciboComoPago && !formData.incluirReciboEnVenta
-          }
+          value={formData.pagoRecibo}
+          disabled
           placeholder="0.00"
         />
         <Button
           variant="contained"
-          onClick={handleAgregarRecibo}
+          onClick={handleOpen}
+          disabled={
+            !formData.contarReciboComoPago && !formData.incluirReciboEnVenta
+          }
         >
           Agregar
         </Button>
       </Box>
-      {recibos.length > 0 && (
-        <List
-          dense
-          sx={{
-            maxHeight: 200,
-            overflow: "auto",
-            border: "1px solid #ddd",
-            borderRadius: 1,
-            mb: 2,
-          }}
-        >
-          {recibos.map((recibo) => (
-            <ListItem key={recibo.id}>
-              <ListItemText primary={`Recibo: S/ ${recibo.monto.toFixed(2)}`} />
-              <IconButton
-                edge="end"
-                color="error"
-                onClick={() => {
-                  handleEliminarRecibo(recibo.id);
-                }}
-              >
-                <DeleteIcon />
-              </IconButton>
-            </ListItem>
-          ))}
-        </List>
-      )}
+      <ContentDialog
+        open={open}
+        handleClose={handleClose}
+        onConfirm={handleTotalRecibo}
+      />
     </Box>
   );
 };

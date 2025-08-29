@@ -2,7 +2,7 @@ import React, { use, useState } from "react";
 import { Box, Paper, Typography, TextField, Button, Grid } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
 import DeleteIcon from "@mui/icons-material/Delete";
-import useDialog from "../../Hooks/useDialogs";
+import useDialogConfirm from "../../Hooks/useDialogConfirm";
 import ReusableTable from "../../Table/ReuseTable";
 import FormPrestamo from "./FormPrestamo";
 import ConfirmDialog from "../../Dialogs/ConfirmDialog";
@@ -32,7 +32,7 @@ const Prestamos = () => {
     openAddDialog,
     openDeleteDialog,
     closeDialog,
-  } = useDialog();
+  } = useDialogConfirm();
 
   const [formData, setFormData] = useState({
     fecha: getCurrentDate(),
@@ -103,8 +103,8 @@ const Prestamos = () => {
       </Typography>
 
       <Grid container spacing={3} justifyContent={"center"}>
-        <Grid container sx={{ xs: 12, md: 6 }}>
-          <Paper elevation={3} >
+        <Grid  size={{ xs: 12, md: 4 }}>
+          <Paper elevation={3} sx={{p:2}} >
             <FormPrestamo
               formData={formData}
               handleInputChange={handleInputChange}
@@ -113,7 +113,7 @@ const Prestamos = () => {
           </Paper>
         </Grid>
 
-        <Grid container sx={{ xs: 12, md: 6 }}>
+        <Grid  size={{ xs: 12, md: 8 }}>
           <Paper elevation={3} >
             <ReusableTable
               columns={columns}
