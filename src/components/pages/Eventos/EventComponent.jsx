@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Box, Paper, Typography, Grid } from "@mui/material";
-import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
-import EditIcon from "@mui/icons-material/Edit";
 import useDialogConfirm from "../../Hooks/useDialogConfirm";
 import ConfirmDialog from "../../Dialogs/ConfirmDialog";
 import ReusableTable from "../../Table/ReuseTable";
 import FormEvento from "./FormEvento";
-import useCalcularPagoEfectivo from "../../Hooks/useCalcularPagoEfectivo";
+// import useCalcularPagoEfectivo from "../../Hooks/useCalcularPagoEfectivo";
 const columns = [
   { id: "id", label: "#" },
   { id: "fecha", label: "Fecha" },
@@ -36,6 +34,16 @@ const EventComponent = () => {
     pagoEfectivo: "0.00",
     propina: "",
   });
+
+  // Calcula el monto restante disponible para pagos QR,baucher y recibos si cuenta como pago
+  const getMontoRestante = () => {
+    const montoSistema = parseFloat(formData.montoSistema) || 0;
+    const pagoQR = parseFloat(formData.pagoQR) || 0;
+    const pagoBaucher = parseFloat(formData.pagoBaucher) || 0;
+    const pagoRecibo = parseFloat(formData.pagoRecibo) || 0;
+    const incluirRecibo = formData.contarReciboComoPago ? pagoRecibo : 0;
+    return Math.max(montoSistema - pagoQR - pagoBaucher - incluirRecibo, 0);
+  };
   const [ventas, setVentas] = useState([]);
   const [errors, setErrors] = useState({
     fecha: false,
@@ -52,7 +60,7 @@ const EventComponent = () => {
     closeDialog,
   } = useDialogConfirm();
 
-  const { pagoEfectivo } = useCalcularPagoEfectivo(formData);
+  // const { pagoEfectivo } = useCalcularPagoEfectivo(formData);
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -98,14 +106,14 @@ const EventComponent = () => {
     const nuevaVenta = {
       id: Date.now(),
       fecha: formData.fecha,
+      incluirReciboEnVenta: formData.incluirReciboEnVenta,
+      contarReciboComoPago: formData.contarReciboComoPago,
       pagoRecibo,
       pagoQR,
       pagoBaucher,
-      pagoEfectivo,
+      pagoEfectivo:parseFloat(formData.pagoEfectivo) || 0,
       ventaTotalGeneral,
       propina,
-      incluirReciboEnVenta: formData.incluirReciboEnVenta,
-      contarReciboComoPago: formData.contarReciboComoPago,
       gananciaPorcentaje,
       gananciaGeneral,
     };
@@ -174,7 +182,7 @@ const EventComponent = () => {
                 handleInputChange={handleInputChange}
                 errors={errors}
                 handleOpenAddDialog={handleOpenAddDialog}
-                pagoEfectivo={pagoEfectivo}
+                montoRestante={getMontoRestante()}
               />
             </Paper>
           </Grid>

@@ -59,7 +59,8 @@ const ConfirmDialog = ({
       onClose={onCancel}
       maxWidth="sm"
       fullWidth
-      // closeAfterTransition={false}
+      disableEnforceFocus
+      disableRestoreFocus
     >
       <Box sx={{ textAlign: "center", py: 3 }}>{config.icon}</Box>
 

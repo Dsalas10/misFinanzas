@@ -9,13 +9,13 @@ import {
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
-import ReciboList from "./ReciboList";
+import PagoDialogInput from "./PagoDialogInput";
 const FormEvento = ({
   formData,
   handleInputChange,
-  pagoEfectivo,
   handleOpenAddDialog,
   errors,
+  montoRestante,
 }) => {
   return (
     <>
@@ -90,10 +90,14 @@ const FormEvento = ({
                 label={<span style={{ fontSize: "0.8rem" }}>Pago</span>}
               />
             </Box>
-            <ReciboList
-              formData={formData}
-              handleInputChange={handleInputChange}
-            />
+              <PagoDialogInput
+                label="Pago Recibo o Prepago"
+                value={formData.pagoRecibo}
+                onChange={(val) => handleInputChange("pagoRecibo", val)}
+                maxValue={formData.contarReciboComoPago ? montoRestante : undefined}
+                titleDialog="Monto Recibo o Prepago"
+                disabled={!(formData.incluirReciboEnVenta || formData.contarReciboComoPago)}
+              />
           </Box>
         </Grid>
         {/* lado derecho */}
@@ -105,27 +109,28 @@ const FormEvento = ({
               gap: 2,
             }}
           >
-            <TextField
-              fullWidth
+            <PagoDialogInput
               label="Pago QR"
-              type="number"
               value={formData.pagoQR}
-              onChange={(e) => handleInputChange("pagoQR", e.target.value)}
-              placeholder="0.00"
+              onChange={(val) => handleInputChange("pagoQR", val)}
+              maxValue={formData.montoSistema}
+              titleDialog="Monto QR"
+              disabled={!formData.montoSistema || formData.montoSistema <= 0}
             />
-            <TextField
-              fullWidth
+             <PagoDialogInput
               label="Pago Baucher"
-              type="number"
               value={formData.pagoBaucher}
-              onChange={(e) => handleInputChange("pagoBaucher", e.target.value)}
-              placeholder="0.00"
+              onChange={(val) => handleInputChange("pagoBaucher", val)}
+              maxValue={montoRestante}
+              titleDialog="Monto Baucher"
+              disabled={!formData.montoSistema || formData.montoSistema <= 0}
             />
+
             <TextField
               fullWidth
               label="Pago Efectivo"
               type="number"
-              value={pagoEfectivo}
+              value={montoRestante}
               placeholder="0.00"
               disabled
             />

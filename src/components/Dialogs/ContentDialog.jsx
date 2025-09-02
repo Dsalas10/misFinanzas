@@ -15,41 +15,81 @@ import {
   Paper,
   IconButton,
   Typography,
+  PopoverPaper,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-const ContentDialog = ({ open, handleClose, onConfirm }) => {
+const ContentDialog = ({
+  open,
+  handleClose,
+  handleConfirmItems,
+  title,
+  maxValue,
+  initialItems,
+}) => {
   const [inputValue, setInputValue] = useState("");
-  const [items, setItems] = useState([]);
+  const [items, setItems] = useState(initialItems || []);
+  console.log("pago sistema",maxValue)
 
+  useEffect(() => {
+    if (open) {
+      setItems(initialItems || []);
+    }
+  }, [initialItems, open]);
+
+  const total = items.reduce((acc, val) => acc + val, 0);
+
+  console.log("total",total)
   const handleAgregarItem = () => {
-    const value = parseFloat(inputValue);
-    if (!isNaN(value) && value > 0) {
-      setItems((prev) => [...prev, value]);
+    const monto = parseFloat(inputValue || 0);
+    if (monto > 0 && (maxValue === undefined || total + monto <= maxValue)) {
+      setItems((prev) => [...prev, monto]);
       setInputValue("");
     }
   };
 
   const handleEliminarItem = (index) => {
-    setItems((prev) => prev.filter((_, i) => i !== index));
+    setItems((prev) => {
+      const newItems = prev.filter((_, i) => i !== index);
+      // Forzar recalculo inmediato del total para la validación
+      return newItems;
+    });
+    setInputValue("");
   };
-  
-  const handleConfirmar=()=>{
-    onConfirm(Total)
-    setItems([])
-  }
 
-  const handleCancelar=()=>{
-    handleClose()
-    setItems([])
-  }
-  const Total = items.reduce((acc, val) => acc + val, 0);
+  const handleConfirmar = () => {
+    handleConfirmItems(items);
+    document.getElementById("openButton")?.focus();
+    setInputValue("");
+  };
+
+  const handleCancelar = () => {
+    // Si el usuario eliminó todos los items y cierra, borra los confirmados
+    if (items.length === 0) {
+      handleConfirmItems([]);
+    }
+    handleClose();
+    setInputValue("");
+  };
+
+  // Determinar por qué el botón Confirmar está deshabilitado
+  const confirmDisabled =
+    items.length === 0 || (maxValue !== undefined && total > maxValue);
+  let confirmHelper = "";
+  if (items.length === 0) confirmHelper = "Agrega al menos un monto para confirmar.";
+  else if (maxValue !== undefined && total > maxValue) confirmHelper = `El total supera el máximo permitido (${maxValue}).`;
 
   return (
     <>
-      <Dialog open={open} maxWidth="sm" fullWidth>
-        <DialogTitle>Modal de prueba</DialogTitle>
+      <Dialog
+        open={open}
+        maxWidth="sm"
+        fullWidth
+        disableEnforceFocus
+        disableRestoreFocus
+      >
+        <DialogTitle>{title}</DialogTitle>
         <DialogContent>
           <Box sx={{ display: "flex", gap: 2, mt: 1 }}>
             <TableContainer
@@ -93,8 +133,6 @@ const ContentDialog = ({ open, handleClose, onConfirm }) => {
                   )}
                 </TableBody>
               </Table>
-             
-             
             </TableContainer>
 
             <Box
@@ -122,13 +160,19 @@ const ContentDialog = ({ open, handleClose, onConfirm }) => {
               <Button
                 variant="contained"
                 onClick={handleAgregarItem}
-                disabled={inputValue.trim() === ""}
+                disabled={
+                  inputValue.trim() === "" ||
+                  isNaN(parseFloat(inputValue)) ||
+                  parseFloat(inputValue) <= 0 ||
+                  (maxValue !== undefined &&
+                    total + parseFloat(inputValue) > maxValue)
+                }
               >
                 Agregar monto
               </Button>
               <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle1" fontWeight="bold">
-                  Total: {Total} bs
+                  Total: {total} bs
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
                   Cantidad Ingresados: {items.length}
@@ -136,9 +180,17 @@ const ContentDialog = ({ open, handleClose, onConfirm }) => {
               </Box>
             </Box>
           </Box>
+          {confirmDisabled && (
+            <Typography color="error" sx={{ mt: 2, mb: 0 }}>
+              {confirmHelper}
+            </Typography>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleConfirmar} disabled={items.length === 0}>
+          <Button
+            onClick={handleConfirmar}
+            disabled={confirmDisabled}
+          >
             Confirmar
           </Button>
           <Button onClick={handleCancelar}>Cerrar</Button>
