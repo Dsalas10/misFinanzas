@@ -33,15 +33,6 @@ const FormGastos = ({ formData, handleInputChange, handleOpenAddDialog }) => {
               onChange={(e) => handleInputChange("fecha", e.target.value)}
               required
             />
-            <TextField
-              fullWidth
-              label="Monto"
-              type="number"
-              value={formData.monto}
-              onChange={(e) => handleInputChange("monto", e.target.value)}
-              placeholder="0.00"
-              required
-            />
             <InputLabel>Tipo de Gasto</InputLabel>
             <Select
               value={formData.tipo}
@@ -53,6 +44,15 @@ const FormGastos = ({ formData, handleInputChange, handleOpenAddDialog }) => {
                 </MenuItem>
               ))}
             </Select>
+            <TextField
+              fullWidth
+              label="Monto"
+              type="number"
+              value={formData.monto}
+              onChange={(e) => handleInputChange("monto", e.target.value)}
+              placeholder="0.00"
+              required
+            />
           </Box>
         </Grid>
         <Button

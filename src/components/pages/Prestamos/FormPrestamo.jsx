@@ -47,8 +47,6 @@ const FormPrestamo = ({ formData, handleInputChange, handleOpenAddDialog }) => {
             />
           </Box>
         </Grid>
-       
-         
             <Button
               variant="contained"
               onClick={handleOpenAddDialog}

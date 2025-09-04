@@ -1,8 +1,9 @@
 import React from "react";
 import { Box, Container, Typography } from "@mui/material";
 import Navbar from "./Navbar";
+import { Outlet } from "react-router-dom";
 
-const Layout = ({ children }) => {
+const Layout = ({ user, onLogout }) => {
   return (
     <>
       <Box
@@ -13,17 +14,16 @@ const Layout = ({ children }) => {
           width: "100vw",
         }}
       >
-        <Navbar />
+        <Navbar user={user} onLogout={onLogout} />
         <Container
           component="main"
           maxWidth={false}
           sx={{
             flex: 1,
-
             mt: { xs: 2, md: 3 },
           }}
         >
-          {children}
+          <Outlet />
         </Container>
         <Box
           component="footer"

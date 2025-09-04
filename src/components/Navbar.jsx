@@ -3,19 +3,19 @@ import {
   AppBar,
   Toolbar,
   Typography,
-  List,
-  ListItem,
-  ListItemText,
+  Button,
   Box,
-  useTheme,
+  ClickAwayListener,
+  Paper,
 } from "@mui/material";
 
 import { useNavigate, useLocation } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ onLogout, user }) => {
   const navigate = useNavigate();
   const location = useLocation();
-  const theme = useTheme();
+
+  const [showLogout, setShowLogout] = useState(false);
 
   const menuItems = [
     { id: 1, text: "Dashboard", path: "/" },
@@ -27,6 +27,19 @@ const Navbar = () => {
 
   const handleNavigation = (path) => {
     navigate(path);
+  };
+
+  const handleToggle = () => {
+    setShowLogout((prev) => !prev);
+  };
+  const handleClose = () => {
+    setShowLogout(false);
+  };
+
+  const handleLogoutClick = () => {
+    handleClose();
+    if (onLogout) onLogout();
+    navigate("/login");
   };
 
   return (
@@ -43,7 +56,7 @@ const Navbar = () => {
             }}
             noWrap
           >
-            GestorFinanzas
+            Icono
           </Typography>
           <Box
             sx={{
@@ -79,6 +92,57 @@ const Navbar = () => {
                 {item.text}
               </Typography>
             ))}
+            <ClickAwayListener onClickAway={handleClose}>
+              <Box
+                sx={{
+                  position: "relative",
+                  cursor: "pointer",
+                  color: "white",
+                  userSelect: "none",
+                  padding: "6px 12px",
+                  borderRadius: "4px",
+                  "&:hover": {
+                    backgroundColor: "primary.light",
+                  },
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                }}
+                onClick={handleToggle}
+              >
+                <Typography noWrap>{user?.username || "Usuario"}</Typography>
+                {showLogout && (
+                  <Paper
+                    elevation={2}
+                    sx={{
+                      position: "absolute",
+                      top: "100%",
+                      mt: 0.5,
+                      minWidth: 10,
+                      bgcolor: "background.paper",
+                      color: "text.primary",
+                      borderRadius: 1,
+                      boxShadow:
+                        "0px 3px 5px -1px rgba(0,0,0,0.2), 0px 6px 10px 0px rgba(0,0,0,0.14), 0px 1px 18px 0px rgba(0,0,0,0.12)",
+                      zIndex: 10,
+                    }}
+                  >
+                    <Button
+                      fullWidth
+                      onClick={handleLogoutClick}
+                      sx={{
+                        justifyContent: "flex-start",
+                        textTransform: "none",
+                        padding: "8px 16px",
+                        color: "text.primary",
+                      }}
+                    >
+                      Cerrar sesión
+                    </Button>
+                  </Paper>
+                )}
+              </Box>
+            </ClickAwayListener>
           </Box>
         </Toolbar>
       </AppBar>

@@ -13,7 +13,7 @@ const columns = [
   { id: "monto", label: "monto" },
   { id: "interes", label: "%" },
   { id: "ganancia", label: "Ganancia" },
-  { id: "total", label: "Total" },
+  { id: "total", label: "Devolicion" },
 ];
 const Prestamos = () => {
   const getCurrentDate = () => {

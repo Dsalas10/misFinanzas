@@ -139,12 +139,12 @@ const Gastos = () => {
               />
             </Paper>
           </Grid>
-          <Grid size={{ xs: 12, md: 5 }}>
+          <Grid size={{ xs: 12, md: 6 }}>
             <Paper>
               <ReusableTable columns={columns} rows={gastos} action={actions} />
             </Paper>
           </Grid>
-          <Grid size={{ xs: 12, md: 2 }}>
+          {/* <Grid size={{ xs: 12, md: 2 }}>
             <Paper>
               <InputLabel>Seleccionar Mes</InputLabel>
               <Select value={seleccionMes} onChange={handleMesChange} fullWidth>
@@ -157,15 +157,15 @@ const Gastos = () => {
                 ))}
               </Select>
             </Paper>
-          </Grid>
+          </Grid> */}
         </Grid>
-        {/* <Typography variant="h6" sx={{ mt: 2, ml: 20 }} textAlign={"center"}>
+        <Typography variant="h6" sx={{ mt: 2, ml: 20 }} textAlign={"center"}>
           Total Gastado en{" "}
           {new Date(0, seleccionMes - 1).toLocaleString("default", {
             month: "long",
           })}
           : {totalGastado.toFixed(0)}/Bs
-        </Typography> */}
+        </Typography>
         <ConfirmDialog
           open={dialogOpen}
           type={dialogType}

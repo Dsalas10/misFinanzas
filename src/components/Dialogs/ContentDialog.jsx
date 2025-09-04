@@ -30,7 +30,6 @@ const ContentDialog = ({
 }) => {
   const [inputValue, setInputValue] = useState("");
   const [items, setItems] = useState(initialItems || []);
-  console.log("pago sistema",maxValue)
 
   useEffect(() => {
     if (open) {
