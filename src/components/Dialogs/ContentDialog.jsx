@@ -39,7 +39,6 @@ const ContentDialog = ({
 
   const total = items.reduce((acc, val) => acc + val, 0);
 
-  console.log("total",total)
   const handleAgregarItem = () => {
     const monto = parseFloat(inputValue || 0);
     if (monto > 0 && (maxValue === undefined || total + monto <= maxValue)) {

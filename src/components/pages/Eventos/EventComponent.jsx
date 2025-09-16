@@ -5,22 +5,30 @@ import useDialogConfirm from "../../Hooks/useDialogConfirm";
 import ConfirmDialog from "../../Dialogs/ConfirmDialog";
 import ReusableTable from "../../Table/ReuseTable";
 import FormEvento from "./FormEvento";
-// import useCalcularPagoEfectivo from "../../Hooks/useCalcularPagoEfectivo";
+import { api } from "../../utils/api";
 const columns = [
-  { id: "id", label: "#" },
+  { id: "_id", label: "#" },
   { id: "fecha", label: "Fecha" },
   { id: "ventaTotalGeneral", label: "Venta Total" },
   { id: "propina", label: "Propina" },
   { id: "gananciaPorcentaje", label: "Por.%" },
   { id: "gananciaGeneral", label: "Ganancia" },
 ];
-const EventComponent = () => {
+const EventComponent = ({ user }) => {
   const getCurrentDate = () => {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, "0");
     const day = String(now.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
+  };
+  const getMontoRestante = () => {
+    const montoSistema = parseFloat(formData.montoSistema) || 0;
+    const pagoQR = parseFloat(formData.pagoQR) || 0;
+    const pagoBaucher = parseFloat(formData.pagoBaucher) || 0;
+    const pagoRecibo = parseFloat(formData.pagoRecibo) || 0;
+    const incluirRecibo = formData.contarReciboComoPago ? pagoRecibo : 0;
+    return Math.max(montoSistema - pagoQR - pagoBaucher - incluirRecibo, 0);
   };
 
   const [formData, setFormData] = useState({
@@ -35,15 +43,6 @@ const EventComponent = () => {
     propina: "",
   });
 
-  // Calcula el monto restante disponible para pagos QR,baucher y recibos si cuenta como pago
-  const getMontoRestante = () => {
-    const montoSistema = parseFloat(formData.montoSistema) || 0;
-    const pagoQR = parseFloat(formData.pagoQR) || 0;
-    const pagoBaucher = parseFloat(formData.pagoBaucher) || 0;
-    const pagoRecibo = parseFloat(formData.pagoRecibo) || 0;
-    const incluirRecibo = formData.contarReciboComoPago ? pagoRecibo : 0;
-    return Math.max(montoSistema - pagoQR - pagoBaucher - incluirRecibo, 0);
-  };
   const [ventas, setVentas] = useState([]);
   const [errors, setErrors] = useState({
     fecha: false,
@@ -60,7 +59,6 @@ const EventComponent = () => {
     closeDialog,
   } = useDialogConfirm();
 
-  // const { pagoEfectivo } = useCalcularPagoEfectivo(formData);
   const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
@@ -89,7 +87,29 @@ const EventComponent = () => {
     }
   };
 
-  const handleAgregarVenta = () => {
+  const cargarEventoMesActual = async () => {
+    if (!user || !user._id) {
+      setVentas([]);
+    }
+    try {
+      const resp = await api.get(`eventos/${user._id}`);
+      setVentas(resp.data);
+      //   setTotalGenerado(
+      //   resp.data.reduce((total, venta) => total + parseFloat(venta.monto), 0)
+      // );
+    } catch (error) {
+      console.error("Error al cargar los Datos de los Eventos:", error);
+    }
+  };
+  useEffect(() => {
+    if (user && user._id) {
+      cargarEventoMesActual();
+    } else {
+      setVentas([]); // limpia cuando el usuario cierra sesión
+    }
+  }, []);
+
+  const handleAgregarEvento = async () => {
     const montoSistema = parseFloat(formData.montoSistema) || 0;
     const pagoQR = parseFloat(formData.pagoQR) || 0;
     const pagoBaucher = parseFloat(formData.pagoBaucher) || 0;
@@ -102,58 +122,72 @@ const EventComponent = () => {
 
     const gananciaPorcentaje = parseFloat(ventaTotalGeneral * 0.05);
     const gananciaGeneral = parseFloat(gananciaPorcentaje + propina);
-
     const nuevaVenta = {
-      id: Date.now(),
-      fecha: formData.fecha,
+      fecha: formData.fecha || getCurrentDate(),
       incluirReciboEnVenta: formData.incluirReciboEnVenta,
       contarReciboComoPago: formData.contarReciboComoPago,
       pagoRecibo,
       pagoQR,
       pagoBaucher,
-      pagoEfectivo:parseFloat(formData.pagoEfectivo) || 0,
+      pagoEfectivo: formData.pagoEfectivo || getMontoRestante(),
       ventaTotalGeneral,
       propina,
       gananciaPorcentaje,
       gananciaGeneral,
+      usuario: user._id,
     };
+    try {
+      const resp = await api.post("eventos/nuevoEvento", nuevaVenta);
+      if (resp.data) {
+        // console.log(resp.mensaje);
+              setVentas((prev) => [...prev, resp.data]);
 
-    console.log("Venta guardada:", nuevaVenta);
-    setVentas([...ventas, nuevaVenta]);
+      }
+      // setVentas((prev) => [...prev, resp.data]);
+      // cargarEventoMesActual()
+      setFormData({
+        fecha: getCurrentDate(),
+        montoSistema: "",
+        incluirReciboEnVenta: false,
+        contarReciboComoPago: false,
+        pagoRecibo: "",
+        pagoQR: "",
+        pagoBaucher: "",
+        pagoEfectivo: "0.00",
+        propina: "",
+      });
 
-    // Limpiar formulario
-    setFormData({
-      fecha: getCurrentDate(),
-      montoSistema: "",
-      incluirReciboEnVenta: false,
-      contarReciboComoPago: false,
-      pagoRecibo: "",
-      pagoQR: "",
-      pagoBaucher: "",
-      pagoEfectivo: "0.00",
-      propina: "",
-    });
-
-    setErrors({
-      fecha: false,
-      montoSistema: false,
-    });
-    closeDialog();
+      setErrors({
+        fecha: false,
+        montoSistema: false,
+      });
+      closeDialog();
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const handleEliminarVenta = () => {
+  const handleEliminarEvento = async() => {
     if (dialogData) {
-      setVentas(ventas.filter((venta) => venta.id !== dialogData.id));
+      const data={usuarioId: dialogData.usuario, eventoId: dialogData._id}
+      try {
+      
+      await api.delete("eventos/eliminar",data)
+      // setVentas(ventas.filter((venta) => venta._id !== dialogData._id));
+      cargarEventoMesActual()
+        
+      closeDialog();
+      } catch (error) {
+        console.log("error en handleEliminarVenta",error)
+      }
     }
-    // console.log("dialogdata",dialogData)
-    closeDialog();
   };
 
   const handleConfirmAction = () => {
     if (dialogType === "add") {
-      handleAgregarVenta();
+      handleAgregarEvento();
     } else if (dialogType === "delete") {
-      handleEliminarVenta();
+      handleEliminarEvento();
     }
   };
 

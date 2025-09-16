@@ -13,16 +13,16 @@ import ReusableTable from "../../Table/ReuseTable";
 import useDialogConfirm from "../../Hooks/useDialogConfirm";
 import DeleteIcon from "@mui/icons-material/Delete";
 import ConfirmDialog from "../../Dialogs/ConfirmDialog";
-
+import { api } from "../../utils/api";
 const columns = [
-  { id: "id", label: "#" },
+  { id: "_id", label: "#" },
   { id: "fecha", label: "Fecha" },
-  { id: "tipo", label: "Tipo de Gasto" },
+  { id: "concepto", label: "Tipo de Gasto" },
   { id: "monto", label: "Monto Gastado" },
   // { id: "total", label: "Total" },
 ];
 
-const Gastos = () => {
+const Gastos = ({ user }) => {
   const getCurrentDate = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -35,8 +35,6 @@ const Gastos = () => {
     dialogOpen,
     dialogType,
     dialogData,
-    dialogTitle,
-    dialogMessage,
     openAddDialog,
     openDeleteDialog,
     closeDialog,
@@ -59,30 +57,73 @@ const Gastos = () => {
     }));
   };
 
-  const handleAgregarGasto = () => {
-    const monto = parseFloat(formData.monto) || 0;
-    const nuevoGasto = {
-      id: Date.now(),
-      fecha: getCurrentDate(),
-      monto: monto,
-      tipo: formData.tipo,
-    };
-    console.log("Gasto guardado:", nuevoGasto);
-    setGastos([...gastos, nuevoGasto]);
-    setFormData({
-      fecha: getCurrentDate(),
-      monto: "",
-      tipo: "Otros",
-    });
-
-    closeDialog();
+  const cargarGastosMesActual = async () => {
+    if (!user || !user._id) {
+      setGastos([]); // limpiar la lista si no hay usuario
+      return;
+    }
+    try {
+      // Llama a la ruta correcta del backend
+      const data = await api.get(`gastos/${user._id}`);
+      setGastos(data.gastos);
+      setTotalGastado(
+        data.gastos.reduce((total, gasto) => total + parseFloat(gasto.monto), 0)
+      );
+    } catch (error) {
+      console.error("Error al cargar los gastos:", error);
+    }
   };
 
-  const handleEliminarGasto = () => {
-    if (dialogData) {
-      setGastos(gastos.filter((gasto) => gasto.id !== dialogData.id));
+  useEffect(() => {
+    if (user && user._id) {
+      cargarGastosMesActual();
+    } else {
+      setGastos([]); // limpia cuando el usuario cierra sesión
     }
-    closeDialog();
+  }, [user]);
+
+  const handleAgregarGasto = async () => {
+    const monto = parseFloat(formData.monto) || 0;
+    const nuevoGasto = {
+      usuarioId: user._id,
+      fecha: formData.fecha || getCurrentDate(),
+      monto: monto,
+      concepto: formData.tipo,
+    };
+    try {
+      const response = await api.post("nuevoGasto", nuevoGasto);
+
+      if (response.gasto) {
+        setGastos((prev) => [...prev, response.gasto]);
+      }
+      setFormData({
+        fecha: getCurrentDate(),
+        monto: "",
+        tipo: "Otros",
+      });
+      closeDialog();
+    } catch (error) {
+      console.error("Error al agregar el gasto:", error);
+    }
+  };
+
+  const handleEliminarGasto = async () => {
+    if (dialogData) {
+
+      const data={
+        usuarioId:dialogData.usuario,
+        gastoId:dialogData._id
+      }
+      try {
+        await api.delete("gastos/eliminar",data)
+        setGastos((prevGastos) =>
+          prevGastos.filter((gasto) => gasto._id !== dialogData._id)
+        );
+        closeDialog();
+      } catch (error) {
+        console.error("Error al eliminar gasto:", error);
+      }
+    }
   };
 
   const handleConfirmAccion = () => {
@@ -100,23 +141,6 @@ const Gastos = () => {
     { icon: <DeleteIcon />, tooltip: "Eliminar", onClick: openDeleteDialog },
     // puedes agregar más acciones...
   ];
-
-  //para el mes en que estamos y se reninca cuand terminara
-  // useEffect(() => {
-  //   const mesActual = new Date().getMonth() + 1;
-  //   if (seleccionarMes !== mesActual) {
-  //     setGastos([]); // Resetear gastos si el mes ha cambiado
-  //     setSeleccionarMes(mesActual); // Actualizar el mes seleccionado al mes actual
-  //   }
-  // }, [seleccionarMes]);
-
-  useEffect(() => {
-    const total = gastos.reduce((acc, gasto) => {
-      const gastoMonth = new Date(gasto.fecha).getMonth() + 1;
-      return gastoMonth === seleccionMes ? acc + gasto.monto : acc;
-    }, 0);
-    setTotalGastado(total);
-  }, [gastos, seleccionMes]);
 
   return (
     <>
@@ -144,20 +168,6 @@ const Gastos = () => {
               <ReusableTable columns={columns} rows={gastos} action={actions} />
             </Paper>
           </Grid>
-          {/* <Grid size={{ xs: 12, md: 2 }}>
-            <Paper>
-              <InputLabel>Seleccionar Mes</InputLabel>
-              <Select value={seleccionMes} onChange={handleMesChange} fullWidth>
-                {Array.from({ length: 12 }, (_, index) => (
-                  <MenuItem key={index} value={index + 1}>
-                    {new Date(0, index).toLocaleString("default", {
-                      month: "long",
-                    })}
-                  </MenuItem>
-                ))}
-              </Select>
-            </Paper>
-          </Grid> */}
         </Grid>
         <Typography variant="h6" sx={{ mt: 2, ml: 20 }} textAlign={"center"}>
           Total Gastado en{" "}
@@ -171,8 +181,6 @@ const Gastos = () => {
           type={dialogType}
           onCancel={closeDialog}
           onConfirm={handleConfirmAccion}
-          title={dialogTitle}
-          message={dialogMessage}
         />
       </Box>
     </>

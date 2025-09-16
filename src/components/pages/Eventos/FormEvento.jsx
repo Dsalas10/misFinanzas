@@ -113,7 +113,7 @@ const FormEvento = ({
               label="Pago QR"
               value={formData.pagoQR}
               onChange={(val) => handleInputChange("pagoQR", val)}
-              maxValue={formData.montoSistema}
+              maxValue={montoRestante}
               titleDialog="Monto QR"
               disabled={!formData.montoSistema || formData.montoSistema <= 0}
             />

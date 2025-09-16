@@ -30,18 +30,18 @@ const theme = createTheme({
 });
 
 function App() {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState([]);
 
   const handleLogin = (userData) => {
     setUser (userData);
   };
 
   const handleLogout = () => {
-  setUser (null);
+  setUser ([]);
   // Aquí también puedes limpiar localStorage o tokens si usas
 };
 
-  console.log("user",user)
+  // console.log("user",user)
   // Componente para rutas protegidas
   const PrivateRoute = ({ children }) => {
     return user ? children : <Navigate to="/login" replace />;
@@ -61,9 +61,9 @@ function App() {
             }
           >
             <Route index element={<Dashboard />} />
-            <Route path="eventos" element={<EventComponent />} />
+            <Route path="eventos" element={<EventComponent user={user}  />} />
             <Route path="prestamos" element={<Prestamos />} />
-            <Route path="gastos" element={<Gastos />} />
+            <Route path="gastos" element={<Gastos user={user} />} />
             <Route path="resumen" element={<Resumen />} />
           </Route>
         </Routes>

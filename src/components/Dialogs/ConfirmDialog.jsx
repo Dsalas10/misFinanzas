@@ -16,8 +16,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 const ConfirmDialog = ({
   open,
   type, // 'add' o 'delete'
-  title,
-  message,
   onConfirm,
   onCancel,
 }) => {
@@ -66,13 +64,13 @@ const ConfirmDialog = ({
 
       <DialogTitle sx={{ textAlign: "center", pb: 1 }}>
         <Typography variant="h6" component="div">
-          {title || config.defaultTitle}
+          { config.defaultTitle}
         </Typography>
       </DialogTitle>
 
       <DialogContent>
         <DialogContentText sx={{ textAlign: "center" }}>
-          {message || config.defaultMessage}
+          { config.defaultMessage}
         </DialogContentText>
       </DialogContent>
 

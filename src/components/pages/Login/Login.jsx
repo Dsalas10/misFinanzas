@@ -1,46 +1,52 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, TextField, Button, Typography, Paper } from "@mui/material";
+import { api } from "../../utils/api";
 const Login = ({ onLogin }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!username || !password) {
       setError("Por favor ingresa usuario y contraseña");
       return;
     }
-    if (username === "admin" && password === "admin") {
-      setError("");
-      onLogin({ username });
-      navigate("/", { replace: true });
-    } else {
-      setError("Usuario o contraseña incorrectos");
+    try {
+      const response = await api.post("login", { username, password });
+      if (response.error) {
+        setError(response.error);
+      }
+      if (response.data) {
+        onLogin(response.data);
+        navigate("/", { replace: true });
+      }
+    } catch (error) {
+      setError("Error al iniciar sesión");
     }
   };
   return (
     <Box
       sx={{
-        minHeight: '100vh',
-        width: '100vw',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'linear-gradient(135deg, #e3f0ff 0%, #fafcff 100%)',
+        minHeight: "100vh",
+        width: "100vw",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "linear-gradient(135deg, #e3f0ff 0%, #fafcff 100%)",
       }}
     >
       <Paper
         elevation={8}
         sx={{
           maxWidth: 380,
-          width: '100%',
+          width: "100%",
           p: 4,
           borderRadius: 5,
-          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.15)',
-          backdropFilter: 'blur(2px)',
+          boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.15)",
+          backdropFilter: "blur(2px)",
         }}
       >
         <Box component="form" onSubmit={handleSubmit} noValidate>
@@ -62,7 +68,7 @@ const Login = ({ onLogin }) => {
             onChange={(e) => setUsername(e.target.value)}
             autoComplete="username"
             autoFocus
-            sx={{ background: 'white', borderRadius: 1 }}
+            sx={{ background: "white", borderRadius: 1 }}
           />
           <TextField
             label="Contraseña"
@@ -72,7 +78,7 @@ const Login = ({ onLogin }) => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             autoComplete="current-password"
-            sx={{ background: 'white', borderRadius: 1 }}
+            sx={{ background: "white", borderRadius: 1 }}
           />
           {error && (
             <Typography color="error" variant="body2" mt={1} textAlign="center">
@@ -83,7 +89,13 @@ const Login = ({ onLogin }) => {
             type="submit"
             variant="contained"
             fullWidth
-            sx={{ mt: 4, py: 1.4, fontWeight: 'bold', fontSize: '1.1rem', letterSpacing: 1 }}
+            sx={{
+              mt: 4,
+              py: 1.4,
+              fontWeight: "bold",
+              fontSize: "1.1rem",
+              letterSpacing: 1,
+            }}
           >
             Entrar
           </Button>

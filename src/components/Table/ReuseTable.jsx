@@ -14,7 +14,7 @@ import {
   Grid,
 } from "@mui/material";
 
-const ReusableTable = ({ columns, rows, action ,loading=false}) => {
+const ReusableTable = ({ columns, rows, action, loading = false }) => {
   return (
     <>
       <TableContainer sx={{ mb: 4 }}>
@@ -59,11 +59,11 @@ const ReusableTable = ({ columns, rows, action ,loading=false}) => {
                 </TableCell>
               </TableRow>
             ) : rows.length > 0 ? (
-              rows.map((row) => (
+              rows.map((row, rowIndex) => (
                 <TableRow key={row.id}>
                   {columns.map((col) => (
                     <TableCell key={col.id} align={col.align || "left"}>
-                      { row[col.id]}
+                      {col.id === "_id" ? rowIndex + 1 : row[col.id]}
                     </TableCell>
                   ))}
                   {action.length > 0 && (

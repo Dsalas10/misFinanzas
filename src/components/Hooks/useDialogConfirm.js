@@ -7,27 +7,24 @@ const useDialog = () => {
   const [dialogTitle, setDialogTitle] = useState('');
   const [dialogMessage, setDialogMessage] = useState('');
 
-  const openDialog = (type, data = null, title = '', message = '') => {
+  const openDialog = (type, data = null) => {
     setDialogType(type);
     setDialogData(data);
-    setDialogTitle(title);
-    setDialogMessage(message);
     setDialogOpen(true);
   };
 
   const closeDialog = () => {
     setDialogOpen(false);
     setDialogData(null);
-    setDialogTitle('');
-    setDialogMessage('');
+  
   };
 
-  const openAddDialog = (data = null, title = '', message = '') => {
-    openDialog('add', data, title, message);
+  const openAddDialog = (data = null) => {
+    openDialog('add', data);
   };
 
-  const openDeleteDialog = (data = null, title = '', message = '') => {
-    openDialog('delete', data, title, message);
+  const openDeleteDialog = (data = null) => {
+    openDialog('delete', data);
   };
 
   return {
@@ -35,8 +32,7 @@ const useDialog = () => {
     dialogOpen,
     dialogType,
     dialogData,
-    dialogTitle,
-    dialogMessage,
+
     
     // Métodos
     openDialog,
