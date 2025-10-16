@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Button,
@@ -16,52 +16,31 @@ import {
   Paper,
   Typography,
 } from "@mui/material";
+import { api } from "../utils/api";
 
-const meses = [
-  { value: "01", label: "Enero" },
-  { value: "02", label: "Febrero" },
-  { value: "03", label: "Marzo" },
-  { value: "04", label: "Abril" },
-  { value: "05", label: "Mayo" },
-  { value: "06", label: "Junio" },
-  { value: "07", label: "Julio" },
-  { value: "08", label: "Agosto" },
-  { value: "09", label: "Septiembre" },
-  { value: "10", label: "Octubre" },
-  { value: "11", label: "Noviembre" },
-  { value: "12", label: "Diciembre" },
-];
-
-const datosEjemplo = {
-  eventos: [
-    {
-      id: 1,
-      nombre: "Evento A",
-      fecha: "2024-06-10",
-      descripcion: "Descripción evento A",
-    },
-    {
-      id: 2,
-      nombre: "Evento B",
-      fecha: "2024-06-15",
-      descripcion: "Descripción evento B",
-    },
-  ],
-  prestamos: [
-    { id: 1, nombre: "Préstamo X", fecha: "2024-06-05", monto: 1000 },
-    { id: 2, nombre: "Préstamo Y", fecha: "2024-06-20", monto: 2000 },
-  ],
-  gastos: [
-    { id: 1, nombre: "Gasto 1", fecha: "2024-06-02", monto: 150 },
-    { id: 2, nombre: "Gasto 2", fecha: "2024-06-18", monto: 300 },
-  ],
-  resumen: [
-    { id: 1, concepto: 5000, monto: 2500, restante: 2500 },
-  ],
-};
-const Resumen = () => {
+const Resumen = ({ user }) => {
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 5;
+  console.log("user", user);
+  // Obtiene el mes actual en formato 'MM'
+  const mesActual = String(new Date().getMonth() + 1).padStart(2, "0");
   const [categoria, setCategoria] = useState("eventos");
-  const [mes, setMes] = useState("06");
+  const [mes, setMes] = useState(mesActual);
+  const [datos, setDatos] = useState([]);
+  const meses = [
+    { value: "01", label: "Enero" },
+    { value: "02", label: "Febrero" },
+    { value: "03", label: "Marzo" },
+    { value: "04", label: "Abril" },
+    { value: "05", label: "Mayo" },
+    { value: "06", label: "Junio" },
+    { value: "07", label: "Julio" },
+    { value: "08", label: "Agosto" },
+    { value: "09", label: "Septiembre" },
+    { value: "10", label: "Octubre" },
+    { value: "11", label: "Noviembre" },
+    { value: "12", label: "Diciembre" },
+  ];
 
   const handleCategoriaChange = (cat) => {
     setCategoria(cat);
@@ -71,13 +50,55 @@ const Resumen = () => {
     setMes(event.target.value);
   };
 
-  const datos = datosEjemplo[categoria] || [];
+  const cargarDatosSelecionados = async () => {
+    try {
+      let response;
+      console.log("CATEGORIA:", categoria, "MES:", mes, "USER:", user?._id);
+      if (categoria === "eventos") {
+        response = await api.get(`eventos/${user._id}/${mes}`);
+        // console.log("response eventos", response.eventos);
+        setDatos(response.eventos || []);
+        setPage(0);
+      } else if (categoria === "gastos") {
+        response = await api.get(`gastos/${user._id}/${mes}`);
+        setDatos(response.data || []);
+        setPage(0);
+      } else if (categoria === "prestamos") {
+        response = await api.get(`prestamo/${user._id}/${mes}`);
+        setDatos(response.data || []);
+        setPage(0);
+      } else if (categoria === "resumen") {
+        // Aquí podrías hacer un endpoint especial para resumen mensual
+        setDatos([]);
+        setPage(0);
+      }
+    } catch (error) {
+      console.error("Error al cargar los datos:", error);
+      setDatos([]);
+    }
+  };
+  useEffect(() => {
+    if (user && user._id) {
+      cargarDatosSelecionados();
+    } else {
+      // Manejar el caso cuando no hay usuario (por ejemplo, limpiar datos)
+    }
+  }, [categoria, mes, user]);
+
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h5" mb={3}>
+  <Box sx={{  width: '100%', maxWidth: 1200, mx: 'auto' }}>
+      <Typography variant="h5" >
         Resumen
       </Typography>
-      <Box sx={{ display: "flex", alignItems: "center", gap: 2, mb: 3 }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          alignItems: { xs: "stretch", md: "center" },
+          gap: 2,
+          
+        }}
+      >
         <ButtonGroup variant="outlined" color="primary">
           <Button
             variant={categoria === "eventos" ? "contained" : "outlined"}
@@ -119,9 +140,34 @@ const Resumen = () => {
             ))}
           </Select>
         </FormControl>
+        <Box sx={{ minWidth: 200 }}>
+          <Paper
+            elevation={3}
+            sx={{
+              p: 2,
+              background: "linear-gradient(90deg, #43cea2 0%, #185a9d 100%)",
+              color: "#fff",
+              borderRadius: 3,
+              textAlign: "center",
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: "bold", mb: 1 }}>
+              Ganancia total del Mes
+            </Typography>
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: "bold", letterSpacing: 1 }}
+            >
+              Bs{" "}
+              {datos
+                .reduce((acc, item) => acc + (item.gananciaGeneral || 0), 0)
+                .toLocaleString("es-BO")}
+            </Typography>
+          </Paper>
+        </Box>
       </Box>
-      <TableContainer component={Paper}>
-        <Table>
+  <TableContainer >
+  <Table sx={{ minWidth: 320 }}>
           <TableHead>
             <TableRow>
               {/* Encabezados según categoría */}
@@ -166,13 +212,15 @@ const Resumen = () => {
                 </TableCell>
               </TableRow>
             )}
-            {datos.map((item) => (
+            {datos.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((item) => (
               <TableRow key={item.id}>
                 {categoria === "eventos" && (
                   <>
-                    <TableCell>{item.nombre}</TableCell>
                     <TableCell>{item.fecha}</TableCell>
-                    <TableCell>{item.descripcion}</TableCell>
+                    <TableCell>{item.ventaTotalGeneral}</TableCell>
+                    <TableCell>{item.gananciaPorcentaje}</TableCell>
+                    <TableCell>{item.propina}</TableCell>
+                    <TableCell>{item.gananciaGeneral}</TableCell>
                   </>
                 )}
                 {categoria === "prestamos" && (
@@ -199,7 +247,46 @@ const Resumen = () => {
               </TableRow>
             ))}
           </TableBody>
+    
         </Table>
+          {/* Paginación */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: { xs: "row", sm: "row" },
+          justifyContent: "center",
+          alignItems: "center",
+          mt: 2,
+          gap: { xs: 0.5, sm: 2 },
+          width: '100%',
+          flexWrap: 'wrap',
+        }}
+      >
+        <Button
+          variant="contained"
+          size="small"
+          disabled={page === 0}
+          onClick={() => setPage(page - 1)}
+          sx={{ minWidth: 36, px: 1, fontSize: { xs: 12, sm: 14 } }}
+        >
+          &#8592;
+        </Button>
+        <Typography
+          variant="body2"
+          sx={{ mx: { xs: 1, sm: 2 }, fontSize: { xs: 13, sm: 16 }, minWidth: 90, textAlign: 'center' }}
+        >
+          Página {page + 1} de {Math.max(1, Math.ceil(datos.length / rowsPerPage))}
+        </Typography>
+        <Button
+          variant="contained"
+          size="small"
+          disabled={page >= Math.ceil(datos.length / rowsPerPage) - 1}
+          onClick={() => setPage(page + 1)}
+          sx={{ minWidth: 36, px: 1, fontSize: { xs: 12, sm: 14 } }}
+        >
+          &#8594;
+        </Button>
+      </Box>
       </TableContainer>
     </Box>
   );

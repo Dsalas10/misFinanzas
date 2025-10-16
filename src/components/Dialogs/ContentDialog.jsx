@@ -15,10 +15,9 @@ import {
   Paper,
   IconButton,
   Typography,
-  PopoverPaper,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 
 const ContentDialog = ({
   open,
@@ -30,18 +29,18 @@ const ContentDialog = ({
 }) => {
   const [inputValue, setInputValue] = useState("");
   const [items, setItems] = useState(initialItems || []);
-
   useEffect(() => {
     if (open) {
       setItems(initialItems || []);
     }
   }, [initialItems, open]);
-
+  
   const total = items.reduce((acc, val) => acc + val, 0);
-
   const handleAgregarItem = () => {
     const monto = parseFloat(inputValue || 0);
-    if (monto > 0 && (maxValue === undefined || total + monto <= maxValue)) {
+    // Permite agregar si el monto es menor o igual al monto restante
+    const montoRestante = maxValue !== undefined ? maxValue - total : undefined;
+    if (monto > 0 && (montoRestante === undefined || monto <= montoRestante)) {
       setItems((prev) => [...prev, monto]);
       setInputValue("");
     }
@@ -73,10 +72,11 @@ const ContentDialog = ({
 
   // Determinar por qué el botón Confirmar está deshabilitado
   const confirmDisabled =
-    items.length === 0 || (maxValue !== undefined && total > maxValue);
+  items.length === 0 || (maxValue !== undefined && total > maxValue);
   let confirmHelper = "";
-  if (items.length === 0) confirmHelper = "Agrega al menos un monto para confirmar.";
-  else if (maxValue !== undefined && total > maxValue) confirmHelper = `El total supera el máximo permitido (${maxValue}).`;
+  if (items.length === 0) {
+    confirmHelper = "Agrega al menos un monto para confirmar.";
+  } 
 
   return (
     <>
@@ -162,8 +162,7 @@ const ContentDialog = ({
                   inputValue.trim() === "" ||
                   isNaN(parseFloat(inputValue)) ||
                   parseFloat(inputValue) <= 0 ||
-                  (maxValue !== undefined &&
-                    total + parseFloat(inputValue) > maxValue)
+                  (maxValue !== undefined && parseFloat(inputValue) > (maxValue - total))
                 }
               >
                 Agregar monto
@@ -198,4 +197,4 @@ const ContentDialog = ({
   );
 };
 
-export default ContentDialog;
+export default memo(ContentDialog);

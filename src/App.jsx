@@ -62,9 +62,9 @@ function App() {
           >
             <Route index element={<Dashboard />} />
             <Route path="eventos" element={<EventComponent user={user}  />} />
-            <Route path="prestamos" element={<Prestamos />} />
+            <Route path="prestamos" element={<Prestamos user={user} />} />
             <Route path="gastos" element={<Gastos user={user} />} />
-            <Route path="resumen" element={<Resumen />} />
+            <Route path="resumen" element={<Resumen  user={user} />} />
           </Route>
         </Routes>
       </Router>

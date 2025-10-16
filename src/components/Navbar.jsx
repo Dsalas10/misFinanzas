@@ -110,7 +110,7 @@ const Navbar = ({ onLogout, user }) => {
                 }}
                 onClick={handleToggle}
               >
-                <Typography noWrap>{user.nombre || "Usuario"}</Typography>
+                <Typography noWrap>{user.nombre}</Typography>
                 {showLogout && (
                   <Paper
                     elevation={2}

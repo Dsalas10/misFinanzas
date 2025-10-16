@@ -9,6 +9,7 @@ const PagoDialogInput = ({
   maxValue,
   titleDialog,
   disabled = false,
+  helperText = "",
 }) => {
   const [open, setOpen] = useState(false);
   const [confirmedItems, setConfirmedItems] = useState([]);
@@ -42,6 +43,8 @@ const PagoDialogInput = ({
           value={value}
           disabled
           placeholder="0.00"
+          //  helperText={helperText} // Aquí se usa la prop helperText
+          error={!!helperText}
         />
         <Button
           variant="contained"

@@ -6,6 +6,7 @@ import {
   Grid,
   FormControlLabel,
   Checkbox,
+  InputAdornment,
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -16,7 +17,25 @@ const FormEvento = ({
   handleOpenAddDialog,
   errors,
   montoRestante,
+  editando,
+  onCancelEdit,
+  openEditDialog,
 }) => {
+  function calcularMetodoPago(metodo) {
+    const montoSistma = parseFloat(formData.montoSistema) || 0;
+    const pagos = {
+      recibo: parseFloat(formData.pagoRecibo) || 0,
+      qr: parseFloat(formData.pagoQR) || 0,
+      baucher: parseFloat(formData.pagoBaucher) || 0,
+    };
+    let suma = 0;
+    Object.keys(pagos).forEach((key) => {
+      if (key !== metodo) {
+        suma += pagos[key];
+      }
+    });
+    return Math.max(montoSistma - suma, 0);
+  }
   return (
     <>
       {/* 
@@ -38,7 +57,7 @@ const FormEvento = ({
               helperText={errors.fecha ? "La fecha es requerida" : ""}
               required
             />
-            <TextField
+            {/* <TextField
               fullWidth
               label="Monto Sistema"
               type="number"
@@ -52,52 +71,78 @@ const FormEvento = ({
                 errors.montoSistema ? "El monto del sistema es requerido" : ""
               }
               required
+            /> */}
+            <PagoDialogInput
+              label="Comandas"
+              value={formData.montoSistema}
+              onChange={(val) => handleInputChange("montoSistema", val)}
+              titleDialog="Monto Comandas"
+               helperText={
+                errors.montoSistema ? "Es requerido" : ""
+              }
             />
-            <Box sx={{ display: "flex", flexDirection: "row" }}>
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={formData.incluirReciboEnVenta}
-                    name="incluirReciboEnVenta"
-                    onChange={(e) => {
-                      handleInputChange(
-                        "incluirReciboEnVenta",
-                        e.target.checked
-                      );
-                      if (e.target.checked) {
-                        handleInputChange("contarReciboComoPago", false);
-                      }
-                    }}
-                  />
-                }
-                label={<span style={{ fontSize: "0.8rem" }}>Sistema</span>}
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={formData.contarReciboComoPago}
-                    onChange={(e) => {
-                      handleInputChange(
-                        "contarReciboComoPago",
-                        e.target.checked
-                      );
-                      if (e.target.checked) {
-                        handleInputChange("incluirReciboEnVenta", false);
-                      }
-                    }}
-                  />
-                }
-                label={<span style={{ fontSize: "0.8rem" }}>Pago</span>}
-              />
-            </Box>
+            <Box sx={{ border: "1px solid #ccc", p: 1, borderRadius: 1 }}>
+              <Box sx={{ display: "flex", flexDirection: "row" }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.incluirReciboEnVenta}
+                      name="incluirReciboEnVenta"
+                      onChange={(e) => {
+                        handleInputChange("incluirReciboEnVenta", e.target.checked);
+                        if (e.target.checked) {
+                          handleInputChange("contarReciboComoPago", false);
+                          handleInputChange("pagoRecibo", "0");
+                        }
+                      }}
+                    />
+                  }
+                  label={<span style={{ fontSize: "0.8rem" }}>Sistema</span>}
+                />
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={formData.contarReciboComoPago}
+                      onChange={(e) => {
+                        handleInputChange("contarReciboComoPago", e.target.checked);
+                        if (e.target.checked) {
+                          handleInputChange("incluirReciboEnVenta", false);
+                          handleInputChange("pagoRecibo", "0");
+                        }
+                      }}
+                    />
+                  }
+                  label={<span style={{ fontSize: "0.8rem" }}>Pago</span>}
+                />
+              </Box>
               <PagoDialogInput
                 label="Pago Recibo o Prepago"
                 value={formData.pagoRecibo}
                 onChange={(val) => handleInputChange("pagoRecibo", val)}
-                maxValue={formData.contarReciboComoPago ? montoRestante : undefined}
+                maxValue={formData.contarReciboComoPago ? calcularMetodoPago("recibo") : undefined}
                 titleDialog="Monto Recibo o Prepago"
-                disabled={!(formData.incluirReciboEnVenta || formData.contarReciboComoPago)}
+                disabled={
+                  !(
+                    formData.incluirReciboEnVenta ||
+                    formData.contarReciboComoPago
+                  )
+                }
               />
+            </Box>
+            <TextField
+              label="Porcentaje"
+              type="number"
+              name="porcentaje"
+              value={formData.porcentaje}
+              onChange={(e) => handleInputChange("porcentaje", e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">%</InputAdornment>
+                ),
+                inputProps: { min: 0 },
+              }}
+              autoComplete="off"
+            />
           </Box>
         </Grid>
         {/* lado derecho */}
@@ -106,22 +151,22 @@ const FormEvento = ({
             sx={{
               display: "flex",
               flexDirection: "column",
-              gap: 2,
+              gap: 1,
             }}
           >
             <PagoDialogInput
               label="Pago QR"
               value={formData.pagoQR}
               onChange={(val) => handleInputChange("pagoQR", val)}
-              maxValue={montoRestante}
+              maxValue={calcularMetodoPago("qr")}
               titleDialog="Monto QR"
               disabled={!formData.montoSistema || formData.montoSistema <= 0}
             />
-             <PagoDialogInput
+            <PagoDialogInput
               label="Pago Baucher"
               value={formData.pagoBaucher}
               onChange={(val) => handleInputChange("pagoBaucher", val)}
-              maxValue={montoRestante}
+              maxValue={calcularMetodoPago("baucher")}
               titleDialog="Monto Baucher"
               disabled={!formData.montoSistema || formData.montoSistema <= 0}
             />
@@ -142,21 +187,37 @@ const FormEvento = ({
               onChange={(e) => handleInputChange("propina", e.target.value)}
               placeholder="0.00"
             />
+            <Box textAlign={"center"} m={1}>
+              <Button
+                variant="contained"
+                color={editando ? "warning" : "primary"}
+                onClick={editando ? openEditDialog : handleOpenAddDialog}
+                startIcon={<AddIcon />}
+                size="large"
+                sx={{ px: 4, py: 1.5, pb: 2}}
+              >
+                {editando ? "Editar Venta" : "Agregar Venta"}
+              </Button>
+              {editando && (
+                <>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    size="large"
+                    sx={{ px: 3, py: 1.5, mt:1 }}
+                    onClick={onCancelEdit}
+                  >
+                    Cancelar edición
+                  </Button>
+                  <Box mt={1} color="warning.main" fontWeight={600} fontSize={16}>
+                    Modo edición activo
+                  </Box>
+                </>
+              )}
+            </Box>
           </Box>
         </Grid>
       </Grid>
-
-      <Box textAlign={"center"} m={1}>
-        <Button
-          variant="contained"
-          onClick={handleOpenAddDialog}
-          startIcon={<AddIcon />}
-          size="large"
-          sx={{ px: 4, py: 1.5, pb: 2 }}
-        >
-          Agregar Venta
-        </Button>
-      </Box>
     </>
   );
 };

@@ -12,10 +12,11 @@ import {
 import WarningIcon from "@mui/icons-material/Warning";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
 
 const ConfirmDialog = ({
   open,
-  type, // 'add' o 'delete'
+  type, 
   onConfirm,
   onCancel,
 }) => {
@@ -37,6 +38,14 @@ const ConfirmDialog = ({
           defaultTitle: "Confirmar Eliminación",
           defaultMessage:
             "¿Estás seguro de eliminar este registro? Esta acción no se puede deshacer.",
+        };
+      case "edit":
+        return {
+          icon: <EditIcon color="primary" sx={{ fontSize: 40 }} />,
+          confirmColor: "primary",
+          confirmText: "Sí, Editar",
+          defaultTitle: "Confirmar Edición",
+          defaultMessage: "¿Estás seguro de editar este registro?",
         };
       default:
         return {
@@ -64,13 +73,13 @@ const ConfirmDialog = ({
 
       <DialogTitle sx={{ textAlign: "center", pb: 1 }}>
         <Typography variant="h6" component="div">
-          { config.defaultTitle}
+          {config.defaultTitle}
         </Typography>
       </DialogTitle>
 
       <DialogContent>
         <DialogContentText sx={{ textAlign: "center" }}>
-          { config.defaultMessage}
+          {config.defaultMessage}
         </DialogContentText>
       </DialogContent>
 

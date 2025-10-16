@@ -1,6 +1,5 @@
 import {
   Box,
-  Typography,
   Table,
   TableBody,
   TableCell,
@@ -11,12 +10,29 @@ import {
   IconButton,
   Tooltip,
   TablePagination,
-  Grid,
 } from "@mui/material";
+import { useMemo, useState } from "react";
+import { memo } from "react";
 
-const ReusableTable = ({ columns, rows, action, loading = false }) => {
+const ReusableTable = memo(({ columns, rows, action, loading = false }) => {
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+
+  const processedColumns = useMemo(() => columns, [columns]);
+  const paginatedRows = useMemo(() => {
+    const startIndex = page * rowsPerPage;
+    return rows.slice(startIndex, startIndex + rowsPerPage);
+  }, [rows, page, rowsPerPage]);
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  };
+
   return (
-    <>
+    <Box>
       <TableContainer sx={{ mb: 4 }}>
         <Table
           stickyHeader
@@ -36,12 +52,12 @@ const ReusableTable = ({ columns, rows, action, loading = false }) => {
         >
           <TableHead>
             <TableRow>
-              {columns.map((col) => (
+              {processedColumns.map((col) => (
                 <TableCell key={col.id} align={col.align || "left"}>
                   <b>{col.label}</b>
                 </TableCell>
               ))}
-              {action.length > 0 && (
+              {action?.length > 0 && (
                 <TableCell align="center">
                   <b>Acciones</b>
                 </TableCell>
@@ -58,21 +74,27 @@ const ReusableTable = ({ columns, rows, action, loading = false }) => {
                   Cargando...
                 </TableCell>
               </TableRow>
-            ) : rows.length > 0 ? (
-              rows.map((row, rowIndex) => (
-                <TableRow key={row.id}>
-                  {columns.map((col) => (
-                    <TableCell key={col.id} align={col.align || "left"}>
-                      {col.id === "_id" ? rowIndex + 1 : row[col.id]}
-                    </TableCell>
-                  ))}
-                  {action.length > 0 && (
+            ) : paginatedRows.length > 0 ? (
+              paginatedRows.map((row, rowIndex) => (
+                <TableRow key={row._id || row.id || rowIndex} hover>
+                  {processedColumns.map((col) => {
+                    // console.log("col", row);
+                    return (
+                      <TableCell key={col.id} align={col.align || "left"}>
+                        {col.id === "id"
+                          ? rows.indexOf(row) + 1
+                          : row[col.id] || "-"}
+                      </TableCell>
+                    );
+                  })}
+                  {action?.length > 0 && (
                     <TableCell align="center">
                       {action.map((act, i) => (
                         <Tooltip key={i} title={act.tooltip}>
                           <IconButton
                             size="small"
                             onClick={() => act.onClick(row)}
+                            sx={{ mr: 0.5 }} // Mejora: spacing entre botones
                           >
                             {act.icon}
                           </IconButton>
@@ -85,18 +107,30 @@ const ReusableTable = ({ columns, rows, action, loading = false }) => {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length + action.length}
+                  colSpan={processedColumns.length + (action?.length ? 1 : 0)}
                   align="center"
                 >
-                  {"No hay Registro"}
+                  No hay Registros
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
       </TableContainer>
-    </>
+      {rows.length > 0 && (
+        <TablePagination
+          rowsPerPageOptions={[5, 10, 25]}
+          component="div"
+          count={rows.length}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Filas por página:"
+        />
+      )}
+    </Box>
   );
-};
-
+});
+ReusableTable.displayName = "ReusableTable"; // Para debugging
 export default ReusableTable;

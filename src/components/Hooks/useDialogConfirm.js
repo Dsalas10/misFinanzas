@@ -2,10 +2,9 @@ import { useState } from "react";
 
 const useDialog = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogType, setDialogType] = useState(""); // 'add' o 'delete'
+  const [dialogType, setDialogType] = useState(""); 
   const [dialogData, setDialogData] = useState(null);
-  const [dialogTitle, setDialogTitle] = useState('');
-  const [dialogMessage, setDialogMessage] = useState('');
+
 
   const openDialog = (type, data = null) => {
     setDialogType(type);
@@ -27,6 +26,10 @@ const useDialog = () => {
     openDialog('delete', data);
   };
 
+  const openEditDialog = (data = null) => {
+    openDialog('edit', data);
+  }
+
   return {
     // Estado
     dialogOpen,
@@ -38,7 +41,8 @@ const useDialog = () => {
     openDialog,
     closeDialog,
     openAddDialog,
-    openDeleteDialog
+    openDeleteDialog,
+    openEditDialog,
   };
 };
 
