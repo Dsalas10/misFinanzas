@@ -4,12 +4,23 @@ import {
   TextField,
   Button,
   Grid,
-  InputAdornment,
+  InputLabel,
+  Select,
+  MenuItem
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { memo } from "react";
-const FormPrestamo = memo(
+const FormIngresoExtra = memo(
   ({ formData, handleInputChange, handleOpenAddDialog }) => {
+
+     const tipo = [
+      "Prestamo",
+      "Apuesta",
+      "Giros",
+      "Otros"
+    ];
+
+  
     return (
       <>
         <Grid container spacing={2}>
@@ -23,9 +34,29 @@ const FormPrestamo = memo(
                 required
                 autoComplete="off"
               />
+              <InputLabel>Concepto</InputLabel>
+              <Select
+                value={formData.concepto}
+                onChange={(e)=>handleInputChange("concepto", e.target.value)}>
+                {tipo.map((tipo, index) => (
+                  <MenuItem key={index} value={tipo}>
+                    {tipo}
+                  </MenuItem>
+                ))}
+                </Select>
+                {formData.concepto === "Otros" && (
+                  <TextField
+                    fullWidth
+                    label="detalle"
+                    value={formData.detalle}
+                    onChange={(e) => handleInputChange("detalle", e.target.value)}
+                    required
+                    autoComplete="off"
+                  />
+                )}
               <TextField
                 fullWidth
-                label="Monto a Prestar"
+                label="Monto"
                 type="number"
                 value={formData.monto}
                 onChange={(e) => handleInputChange("monto", e.target.value)}
@@ -33,21 +64,7 @@ const FormPrestamo = memo(
                 required
                 autoComplete="off"
               />
-              <TextField
-                fullWidth
-                label="Interés (%)"
-                type="number"
-                placeholder="Interes %"
-                value={formData.interes}
-                onChange={(e) => handleInputChange("interes", e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">%</InputAdornment>
-                  ),
-                  inputProps: { min: 0 },
-                }}
-                autoComplete="off"
-              />
+              
             </Box>
           </Grid>
           <Grid size={{ xs: 12 }}>
@@ -57,7 +74,7 @@ const FormPrestamo = memo(
               startIcon={<AddIcon />}
               sx={{ px: 4, py: 1.5, pb: 2 }}
             >
-              Agregar Prestamo
+              Agregar Ingreso
             </Button>
           </Grid>
         </Grid>
@@ -66,4 +83,4 @@ const FormPrestamo = memo(
   }
 );
 
-export default FormPrestamo;
+export default FormIngresoExtra;

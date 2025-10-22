@@ -3,7 +3,7 @@ import { Box, Paper, Typography, Grid, CircularProgress } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import useDialogConfirm from "../../Hooks/useDialogConfirm";
 import ReusableTable from "../../Table/ReuseTable";
-import FormPrestamo from "./FormPrestamo";
+import FormIngresoExtra from "./FormIngresoExtra";
 import ConfirmDialog from "../../Dialogs/ConfirmDialog";
 import { api } from "../../utils/api";
 import { useEffect } from "react";
@@ -13,12 +13,11 @@ import { useMemo } from "react";
 const columns = [
   { id: "id", label: "#" },
   { id: "fecha", label: "Fecha" },
-  { id: "monto", label: "monto" },
-  { id: "interes", label: "%" },
-  { id: "ganancia", label: "Ganancia" },
-  { id: "total", label: "Devolucion" },
+  { id: "concepto", label: "Concepto" },
+  {id:"detalle", label:"Detalle"},
+  { id: "monto", label: "Monto" },
 ];
-const Prestamos = ({ user }) => {
+const IngresoExtra = ({ user }) => {
   const getCurrentDate = useCallback(() => {
     // Memoiza para evitar recreación
     const now = new Date();
@@ -41,94 +40,93 @@ const Prestamos = ({ user }) => {
   const [formData, setFormData] = useState({
     fecha: getCurrentDate(),
     monto: "",
-    interes: 10,
+    concepto: "Otros",
   });
 
-  const [prestamos, setPrestamos] = useState([]);
+  const [ingresoExtra, setIngresoExtra] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const handleInputChange = useCallback((field, value) => {
+  const handleInputChange = (field, value) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
-  }, []);
+  }
 
-  const cargarPrestamosMesActual = useCallback(async () => {
-    if (!user || !user._id) {
-      setPrestamos([]);
+
+  const cargarIngresoExtraMesActual = useCallback(async () => {
+    if (!user._id) {
+      setIngresoExtra([]);
       setLoading(false);
       return;
     }
     try {
       setLoading(true);
       setError(null);
-      const resp = await api.get(`prestamo/${user._id}`);
-      setPrestamos(resp.prestamos || []);
+      const resp = await api.get(`ingresoextra/${user._id}`);
+      setIngresoExtra(resp.ingresosExtras || []);
     } catch (error) {
-      console.error("Error al cargar los Datos de los Prestamos:", error);
-      setError("Error al cargar préstamos");
-      setPrestamos([]);
+      console.error("Error al cargar los Datos de los Ingresos Extras:", error);
+      setError("Error al cargar ingresos extras");
+      setIngresoExtra([]);
     } finally {
       setLoading(false);
     }
   }, [user._id]);
   useEffect(() => {
-    cargarPrestamosMesActual();
-  }, [cargarPrestamosMesActual]);
+    cargarIngresoExtraMesActual();
+  }, [cargarIngresoExtraMesActual]);
 
-  const handleAgregarPrestamo = useCallback(async () => {
+  const handleAgregarIngresoExtra = useCallback(async () => {
     const monto = parseFloat(formData.monto) || 0;
     if (monto <= 0) {
       setError("Monto inválido");
       return;
     }
-    const intereses = (parseFloat(formData.interes) || 10) / 100;
-    const gananciaXinteres = monto * intereses;
-    const totalMonto = monto + gananciaXinteres;
-    const nuevoPrestamo = {
+    const nuevoIngresoExtra = {
       fecha: formData.fecha || getCurrentDate(),
       monto: monto,
-      interes: formData.interes,
-      ganancia: gananciaXinteres,
-      total: totalMonto,
-      usuario: user._id,
+      concepto: formData.concepto,
+      detalle: formData.detalle || "-",
+      usuario: user._id
     };
     try {
-      const respo = await api.post("prestamo/nuevo", nuevoPrestamo);
-      console.log("respo",respo)
-      if (respo && respo.prestamo) {
+      const respo = await api.post("ingresoextra/nuevo", nuevoIngresoExtra);
+      if (respo && respo.ingresoExtra) {
         // setPrestamos((prev) => [...prev, respo.prestamo]);
-        setPrestamos((prev) =>[...prev,respo.prestamo])
+        setIngresoExtra((prev) => [...prev, respo.ingresoExtra]);
         setFormData({
           fecha: getCurrentDate(),
           monto: "",
-          interes: 10,
+          concepto:"Otros",
+          detalle:""
         });
       } else {
-        setError("Error al registrar en la BD");
+        setError("Error al registrar en la BD en Ingreso Extra");
       }
       closeDialog();
     } catch (error) {
-      console.error("Error al agregar el prestamo:", error);
-      setError("Error al agregar préstamo");
+      console.error("Error al agregar el Ingreso Extra:", error);
+      setError("Error al agregar el Ingreso Extra");
     }
   }, [user._id, closeDialog, getCurrentDate]);
 
-  const handleEliminarPrestamo = async () => {
+  const handleEliminarIngresoExtra = async () => {
     if (dialogData) {
       const data = {
         usuarioId: dialogData.usuario,
-        prestamoId: dialogData._id,
+        ingresoExtraId: dialogData._id,
       };
       try {
-        await api.delete("prestamo/eliminar", data);
-        setPrestamos(prestamos.filter((prestamo) => prestamo._id !== dialogData._id));
+        await api.delete("ingresoextra/eliminar", data);
+        setIngresoExtra(
+          ingresoExtra.filter((ingreso) => ingreso._id !== dialogData._id)
+        );
 
         closeDialog();
       } catch (error) {
-        console.log("error en handleEliminarprestamo", error);
+        console.log("error en handleEliminarIngresoExtra", error);
       }
       closeDialog();
     }
@@ -136,11 +134,11 @@ const Prestamos = ({ user }) => {
 
   const handleConfirmAction = useCallback(() => {
     if (dialogType === "add") {
-      handleAgregarPrestamo();
+      handleAgregarIngresoExtra();
     } else if (dialogType === "delete") {
-      handleEliminarPrestamo();
+      handleEliminarIngresoExtra();
     }
-  }, [dialogType, handleAgregarPrestamo, handleEliminarPrestamo]);
+  }, [dialogType, handleAgregarIngresoExtra, handleEliminarIngresoExtra]);
 
   const actions = useMemo(
     () => [
@@ -149,7 +147,7 @@ const Prestamos = ({ user }) => {
     [openDeleteDialog]
   );
 
-  const memoizedColumns = useMemo(() => columns, []);
+  // const memoizedColumns = useMemo(() => columns, []);
 
   if (loading) {
     return (
@@ -162,17 +160,17 @@ const Prestamos = ({ user }) => {
   return (
     <Box sx={{ p: 1 }}>
       <Typography variant="h4" gutterBottom textAlign={"center"} sx={{ pb: 2 }}>
-        Registro de Préstamos
+        Ingreso Extras
       </Typography>
       {error && (
         <Typography color="error" sx={{ mb: 2 }}>
           {error}
         </Typography>
       )}
-      <Grid container spacing={3} justifyContent={"center"}>
-        <Grid size={{ xs: 12, md: 4 }}>
+      <Grid container justifyContent={"center"} gap={2}>
+        <Grid size={{ xs: 12, md: 3 }}>
           <Paper elevation={3} sx={{ p: 2 }}>
-            <FormPrestamo
+            <FormIngresoExtra
               formData={formData}
               handleInputChange={handleInputChange}
               handleOpenAddDialog={openAddDialog}
@@ -180,11 +178,11 @@ const Prestamos = ({ user }) => {
           </Paper>
         </Grid>
 
-        <Grid size={{ xs: 12, md: 8 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <Paper elevation={3}>
             <ReusableTable
-              columns={memoizedColumns}
-              rows={prestamos}
+              columns={columns}
+              rows={ingresoExtra}
               action={actions}
             />
           </Paper>
@@ -202,4 +200,4 @@ const Prestamos = ({ user }) => {
   );
 };
 
-export default Prestamos;
+export default IngresoExtra;

@@ -15,8 +15,10 @@ import { useMemo, useState } from "react";
 import { memo } from "react";
 
 const ReusableTable = memo(({ columns, rows, action, loading = false }) => {
+    // console.log('ReusableTable se está renderizando con', rows.length, 'filas');
+
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const processedColumns = useMemo(() => columns, [columns]);
   const paginatedRows = useMemo(() => {
@@ -132,5 +134,5 @@ const ReusableTable = memo(({ columns, rows, action, loading = false }) => {
     </Box>
   );
 });
-ReusableTable.displayName = "ReusableTable"; // Para debugging
+// ReusableTable.displayName = "ReusableTable"; // Para debugging
 export default ReusableTable;

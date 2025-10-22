@@ -1,11 +1,10 @@
 import React, { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
 import Layout from "./components/Layout";
 import Dashboard from "./components/pages/Dashboard";
 import EventComponent from "./components/pages/Eventos/EventComponent";
-import Prestamos from "./components/pages/Prestamos/Prestamos";
+import IngresoExtra from "./components/pages/IngresExtras/IngresoExtra";
 import Gastos from "./components/pages/Gastos/Gastos";
 import Resumen from "./components/pages/Resumen";
 import Login from "./components/pages/Login/Login";
@@ -30,10 +29,10 @@ const theme = createTheme({
 });
 
 function App() {
-  const [user, setUser] = useState([]);
-
+  const [user, setUser] = useState(null);
   const handleLogin = (userData) => {
-    setUser (userData);
+    console.log("handleLogin, userData:", userData);
+    setUser(userData);
   };
 
   const handleLogout = () => {
@@ -41,7 +40,7 @@ function App() {
   // Aquí también puedes limpiar localStorage o tokens si usas
 };
 
-  // console.log("user",user)
+  console.log("user",user)
   // Componente para rutas protegidas
   const PrivateRoute = ({ children }) => {
     return user ? children : <Navigate to="/login" replace />;
@@ -60,9 +59,9 @@ function App() {
               </PrivateRoute>
             }
           >
-            <Route index element={<Dashboard />} />
+            <Route index element={<Dashboard user={user} />} />
             <Route path="eventos" element={<EventComponent user={user}  />} />
-            <Route path="prestamos" element={<Prestamos user={user} />} />
+            <Route path="ingresos-extras" element={<IngresoExtra user={user} />} />
             <Route path="gastos" element={<Gastos user={user} />} />
             <Route path="resumen" element={<Resumen  user={user} />} />
           </Route>

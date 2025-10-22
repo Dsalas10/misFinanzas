@@ -20,7 +20,7 @@ const Navbar = ({ onLogout, user }) => {
   const menuItems = [
     { id: 1, text: "Dashboard", path: "/" },
     { id: 2, text: "Eventos", path: "/eventos" },
-    { id: 3, text: "Préstamos", path: "/prestamos" },
+    { id: 3, text: "Ingresos Extras", path: "/ingresos-extras" },
     { id: 4, text: "Gastos", path: "/gastos" },
     { id: 5, text: "Resumen", path: "/resumen" },
   ];

@@ -1,3 +1,4 @@
+// const BASE_URL = "https://backfinanza.onrender.com/api";
 const BASE_URL = "http://localhost:5000/api";
 
 const handleResponse = async (res) => {
@@ -22,7 +23,7 @@ export const api = {
     return handleResponse(res);
   },
   post: async (endpoint, body) => {
-    console.log("Body:", body);
+
     const res = await fetch(`${BASE_URL}/${endpoint}`, {
       method: "POST",
       headers: {

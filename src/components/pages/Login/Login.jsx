@@ -16,11 +16,12 @@ const Login = ({ onLogin }) => {
     }
     try {
       const response = await api.post("login", { username, password });
+      // console.log("Login response:", response);
       if (response.error) {
         setError(response.error);
       }
-      if (response.data) {
-        onLogin(response.data);
+      if (response.resultado) {
+        onLogin(response.resultado.usuario);
         navigate("/", { replace: true });
       }
     } catch (error) {

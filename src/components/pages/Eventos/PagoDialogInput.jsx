@@ -43,7 +43,7 @@ const PagoDialogInput = ({
           value={value}
           disabled
           placeholder="0.00"
-          //  helperText={helperText} // Aquí se usa la prop helperText
+           helperText={helperText} // Aquí se usa la prop helperText
           error={!!helperText}
         />
         <Button

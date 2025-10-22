@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { Box, Paper, Typography, Grid } from "@mui/material";
+import React, { useCallback, useEffect, useState } from "react";
+import { Box, Paper, Typography, Grid, CircularProgress } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
 import useDialogConfirm from "../../Hooks/useDialogConfirm";
@@ -7,9 +7,11 @@ import ConfirmDialog from "../../Dialogs/ConfirmDialog";
 import ReusableTable from "../../Table/ReuseTable";
 import FormEvento from "./FormEvento";
 import { api } from "../../utils/api";
+
 const columns = [
   { id: "id", label: "#" },
   { id: "fecha", label: "Fecha" },
+  { id: "tipo", label: "Tipo de Evento" },
   { id: "ventaTotalGeneral", label: "Venta Total" },
   { id: "propina", label: "Propina" },
   { id: "gananciaPorcentaje", label: "Por.%" },
@@ -37,15 +39,21 @@ const EventComponent = ({ user }) => {
     montoSistema: "",
     incluirReciboEnVenta: false,
     contarReciboComoPago: false,
+    pagafijacheck:false,
+    pagaporcentajecheck:false,
     pagoRecibo: "",
     pagoQR: "",
     pagoBaucher: "",
     pagoEfectivo: "0.00",
     propina: "",
+    tipo:"Evento",
     porcentaje: "5",
+    pagafija:""
+    
   });
 
   const [ventas, setVentas] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({
     fecha: false,
     montoSistema: false,
@@ -76,11 +84,11 @@ const EventComponent = ({ user }) => {
   const validateForm = () => {
     const newErrors = {
       fecha: !formData.fecha,
-      montoSistema:
-        !formData.montoSistema || parseFloat(formData.montoSistema) <= 0,
-    };
+      montoSistema: formData.pagafijacheck ? false :  !formData.montoSistema || parseFloat(formData.montoSistema) <= 0,
+      pagafija: formData.pagafijacheck  ? (!formData.pagafija || parseFloat(formData.pagafija) <= 0)  : false,  
+      };
     setErrors(newErrors);
-    return !newErrors.fecha && !newErrors.montoSistema;
+    return !newErrors.fecha && !newErrors.montoSistema && !newErrors.pagafija;
   };
 
   const handleOpenAddDialog = () => {
@@ -89,27 +97,33 @@ const EventComponent = ({ user }) => {
     }
   };
 
-  const cargarEventoMesActual = async () => {
-    if (!user || !user._id) {
+  const cargarEventoMesActual = useCallback(async () => {
+    if (!user._id) {
+      setLoading(false);
       setVentas([]);
+      return;
     }
     try {
+      setLoading(true);
       const resp = await api.get(`eventos/${user._id}`);
-      setVentas(resp.data);
+      setVentas(resp.data || []);
       //   setTotalGenerado(
       //   resp.data.reduce((total, venta) => total + parseFloat(venta.monto), 0)
       // );
     } catch (error) {
       console.error("Error al cargar los Datos de los Eventos:", error);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [user._id]);
+
   useEffect(() => {
-    if (user && user._id) {
+    if (user._id) {
       cargarEventoMesActual();
     } else {
-      setVentas([]); // limpia cuando el usuario cierra sesión
+      setVentas([]);
     }
-  }, []);
+  }, [cargarEventoMesActual]);
 
   const handleAgregarEvento = async () => {
     const montoSistema = parseFloat(formData.montoSistema) || 0;
@@ -123,19 +137,29 @@ const EventComponent = ({ user }) => {
     }
 
     // El porcentaje debe ser decimal (ej: 5% = 0.05)
-    const porcentajeDecimal = formData.porcentaje ? parseFloat(formData.porcentaje) / 100 : 0.05;
-    const gananciaPorcentaje = Math.floor(ventaTotalGeneral * porcentajeDecimal);
+    const porcentajeDecimal = formData.porcentaje
+      ? parseFloat(formData.porcentaje) / 100
+      : 0.05;
+    const gananciaPorcentaje = Math.floor(
+      ventaTotalGeneral * porcentajeDecimal
+    );
     const gananciaGeneral = parseFloat(gananciaPorcentaje + propina);
     const nuevaVenta = {
       fecha: formData.fecha || getCurrentDate(),
+      incluirReciboEnVenta:formData.incluirReciboEnVenta || false,
+      contarReciboComoPago:formData.contarReciboComoPago ||false,
+      pagafijocheck:formData.pagafijacheck||false,
+      pagaporcentaje: formData.pagaporcentajecheck || false,
       pagoRecibo,
       pagoQR,
       pagoBaucher,
+      tipo:formData.tipo,
       pagoEfectivo: formData.pagoEfectivo || getMontoRestante(),
       ventaTotalGeneral,
       propina,
       gananciaPorcentaje,
       gananciaGeneral,
+      pagafija: parseFloat(formData.pagafija) || 0,
       porcentaje: formData.porcentaje,
       usuario: user._id,
     };
@@ -145,19 +169,22 @@ const EventComponent = ({ user }) => {
         console.log(resp.mensaje);
       }
       // setVentas((prev) => [...prev, resp.data]);
-      cargarEventoMesActual()
+      cargarEventoMesActual();
       setFormData({
         fecha: getCurrentDate(),
         montoSistema: "",
         incluirReciboEnVenta: false,
         contarReciboComoPago: false,
-        modificarPorcentaje:false,
+        pagafijacheck:false,
+        pagaporcentajecheck:false,
+        pagafija:"",
         pagoRecibo: "",
         pagoQR: "",
         pagoBaucher: "",
         pagoEfectivo: "0.00",
         propina: "",
         porcentaje: "5",
+        tipo:"Evento"
       });
 
       setErrors({
@@ -171,18 +198,17 @@ const EventComponent = ({ user }) => {
     }
   };
 
-  const handleEliminarEvento = async() => {
+  const handleEliminarEvento = async () => {
     if (dialogData) {
-      const data={usuarioId: dialogData.usuario, eventoId: dialogData._id}
+      const data = { usuarioId: dialogData.usuario, eventoId: dialogData._id };
       try {
-      
-      await api.delete("eventos/eliminar",data)
-      // setVentas(ventas.filter((venta) => venta._id !== dialogData._id));
-      cargarEventoMesActual()
-        
-      closeDialog();
+        await api.delete("eventos/eliminar", data);
+        // setVentas(ventas.filter((venta) => venta._id !== dialogData._id));
+        cargarEventoMesActual();
+
+        closeDialog();
       } catch (error) {
-        console.log("error en handleEliminarVenta",error)
+        console.log("error en handleEliminarVenta", error);
       }
     }
   };
@@ -193,7 +219,11 @@ const EventComponent = ({ user }) => {
       montoSistema: row.ventaTotalGeneral || "",
       incluirReciboEnVenta: row.incluirReciboEnVenta || false,
       contarReciboComoPago: row.contarReciboComoPago || false,
-      modificarPorcentaje: row.modificarPorcentaje || false,
+      pagafija:row.pagafija || 0,
+      pagafijacheck: row.pagafijacheck || false,
+      pagaporcentajecheck: row.pagaporcentajecheck ||false,
+      tipo: row.tipo,
+      pagafija:row.pagafija || "",
       pagoRecibo: row.pagoRecibo || "",
       pagoQR: row.pagoQR || "",
       pagoBaucher: row.pagoBaucher || "",
@@ -201,10 +231,10 @@ const EventComponent = ({ user }) => {
       propina: row.propina || "",
       porcentaje: row.porcentaje || "5",
       _id: row._id, // Necesario para identificar qué evento se está editando
-      usuario: user._id
+      usuario: user._id,
     });
     setEditando(true);
-  }
+  };
 
   const handleEditarEvento = async () => {
     // console.log("formdataEdit",formData)
@@ -218,10 +248,13 @@ const EventComponent = ({ user }) => {
     if (formData.incluirReciboEnVenta) {
       ventaTotalGeneral += pagoRecibo;
     }
-    const porcentajeDecimal = formData.porcentaje ? parseFloat(formData.porcentaje) / 100 : 0.05;
-    const gananciaPorcentaje = Math.floor(ventaTotalGeneral * porcentajeDecimal);
+    const porcentajeDecimal = formData.porcentaje
+      ? parseFloat(formData.porcentaje) / 100
+      : 0.05;
+    const gananciaPorcentaje = Math.floor(
+      ventaTotalGeneral * porcentajeDecimal
+    );
     const gananciaGeneral = parseFloat(gananciaPorcentaje + propina);
-    console.log("ventaTotalGeneral", gananciaPorcentaje);
     const eventoActualizado = {
       _id: formData._id, // Debes tener el id en formData
       fecha: formData.fecha || getCurrentDate(),
@@ -235,22 +268,31 @@ const EventComponent = ({ user }) => {
       gananciaGeneral,
       porcentaje: formData.porcentaje,
       usuarioId: user._id,
+      pagafijacheck:formData.pagafijacheck || false,
+      pagaporcentajecheck:formData.pagaporcentajecheck || false,
+      pagafija:formData.pagafija || 0,
+      tipo:formData.tipo,
+      incluirReciboEnVenta:formData.incluirReciboEnVenta || false,
+      contarReciboComoPago:formData.contarReciboComoPago ||false
     };
     try {
       await api.put(`eventos/actualizar/${formData._id}`, eventoActualizado);
       cargarEventoMesActual();
-      setFormData({
+     setFormData({
         fecha: getCurrentDate(),
         montoSistema: "",
         incluirReciboEnVenta: false,
         contarReciboComoPago: false,
-        modificarPorcentaje: false,
+        pagafijacheck:false,
+        pagaporcentajecheck:false,
+        pagafija:"",
         pagoRecibo: "",
         pagoQR: "",
         pagoBaucher: "",
         pagoEfectivo: "0.00",
         propina: "",
         porcentaje: "5",
+        tipo:"Evento"
       });
       setEditando(false);
       setErrors({ fecha: false, montoSistema: false });
@@ -265,8 +307,7 @@ const EventComponent = ({ user }) => {
       handleAgregarEvento();
     } else if (dialogType === "delete") {
       handleEliminarEvento();
-    }
-    else if (dialogType === "edit") {
+    } else if (dialogType === "edit") {
       handleEditarEvento(); // Llama a la función de editar aquí
     }
   };
@@ -292,17 +333,27 @@ const EventComponent = ({ user }) => {
         montoSistema: "",
         incluirReciboEnVenta: false,
         contarReciboComoPago: false,
-        modificarPorcentaje: false,
+        pagafijacheck:false,
+        pagaporcentajecheck:false,
+        pagafija:"",
         pagoRecibo: "",
         pagoQR: "",
         pagoBaucher: "",
         pagoEfectivo: "0.00",
         propina: "",
         porcentaje: "5",
+        tipo:"Evento"
       });
     },
   };
 
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
   return (
     <>
       <Box sx={{ p: 1 }}>
