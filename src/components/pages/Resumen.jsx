@@ -26,6 +26,7 @@ const Resumen = ({ user }) => {
   const [categoria, setCategoria] = useState("eventos");
   const [mes, setMes] = useState(mesActual);
   const [datos, setDatos] = useState([]);
+  const [totales, setTotales] = useState([]);
   const meses = [
     { value: "01", label: "Enero" },
     { value: "02", label: "Febrero" },
@@ -47,28 +48,41 @@ const Resumen = ({ user }) => {
 
   const handleMesChange = (event) => {
     setMes(event.target.value);
+    console.log(event.target.value);
   };
 
   const cargarDatosSelecionados = async () => {
     try {
-      let response;
-      // console.log("CATEGORIA:", categoria, "MES:", mes, "USER:", user?._id);
+      console.log("CATEGORIA:", categoria, "MES:", mes, "USER:", user?._id);
+      const response = await api.get(
+        `resumen/mes-seleccionado/${user._id}/${mes}`
+      );
+      console.log("RESPONSE:", response);
+      setTotales(response.totals || []);
       if (categoria === "eventos") {
-        response = await api.get(`eventos/${user._id}/${mes}`);
-        // console.log("response eventos", response.eventos);
-        setDatos(response.eventos || []);
+        console.log("response eventos", response.eventos);
+        setDatos(response.data.eventos || []);
         setPage(0);
       } else if (categoria === "gastos") {
-        response = await api.get(`gastos/${user._id}/${mes}`);
-        setDatos(response.gastos || []);
+        setDatos(response.data.gastos || []);
         setPage(0);
       } else if (categoria === "ingresoExtras") {
-        response = await api.get(`ingresoextra/${user._id}/${mes}`);
-        setDatos(response.resultado || []);
+        setDatos(response.data.ingresos || []);
         setPage(0);
       } else if (categoria === "resumen") {
-        // Aquí podrías hacer un endpoint especial para resumen mensual
-        setDatos([]);
+        const { totals } = response;
+        const resumenArray = [
+          {
+            fecha: `${meses.find((m) => m.value === mes)?.label || mes}`,
+            eventsTotal: totals.eventsTotal || 0,
+            ingresosTotal: totals.ingresosTotal || 0,
+            totalGenerado:
+              (totals.eventsTotal || 0) + (totals.ingresosTotal || 0),
+            gastosTotal: totals.gastosTotal || 0,
+            restante: totals.restante || 0,
+          },
+        ];
+        setDatos(resumenArray);
         setPage(0);
       }
     } catch (error) {
@@ -81,7 +95,7 @@ const Resumen = ({ user }) => {
   }, [categoria, mes]);
 
   return (
-    <Box sx={{ width: "100%", maxWidth: 1200, mx: "auto" }}>
+    <Box sx={{ p: 3 }}>
       <Typography variant="h5">Resumen</Typography>
       <Box
         sx={{
@@ -110,6 +124,12 @@ const Resumen = ({ user }) => {
           >
             Gastos
           </Button>
+          <Button
+            variant={categoria === "resumen" ? "contained" : "outlined"}
+            onClick={() => handleCategoriaChange("resumen")}
+          >
+            Resumen
+          </Button>
         </ButtonGroup>
         <FormControl sx={{ minWidth: 150 }}>
           <InputLabel id="select-mes-label">Mes</InputLabel>
@@ -126,50 +146,51 @@ const Resumen = ({ user }) => {
             ))}
           </Select>
         </FormControl>
-        <Box sx={{ minWidth: 200 }}>
-          <Paper
-            elevation={3}
-            sx={{
-              p: 2,
-              background: "linear-gradient(90deg, #43cea2 0%, #185a9d 100%)",
-              color: "#fff",
-              borderRadius: 3,
-              textAlign: "center",
-            }}
-          >
-            <Typography variant="subtitle5" sx={{ fontWeight: "bold" }}>
-              {categoria === "eventos" || categoria === "ingresoExtra"
-                ? "Ganancia total del Mes" + " "
-                : ""}
-              {categoria === "gastos" && "Gasto total del Mes" + " "}
-              {categoria === "resumen" && "Resumen del Mes" + " "}
-            </Typography>
-
-            <Typography
-              variant="h7"
-              sx={{ fontWeight: "bold", letterSpacing: 1 }}
+        {categoria !== "resumen" && (
+          <Box sx={{ minWidth: 200 }}>
+            <Paper
+              elevation={3}
+              sx={{
+                p: 2,
+                background: "linear-gradient(90deg, #43cea2 0%, #185a9d 100%)",
+                color: "#fff",
+                borderRadius: 3,
+                textAlign: "center",
+              }}
             >
-              {datos
-                .reduce((acc, item) => {
-                  const valor = item.gananciaGeneral || item.monto || 0;
-                  return acc + valor;
-                }, 0)
-                .toLocaleString("es-BO")}
-              bs{" "}
-            </Typography>
-          </Paper>
-        </Box>
+              <Typography variant="subtitle5" sx={{ fontWeight: "bold" }}>
+                {categoria === "eventos" || categoria === "ingresoExtras"
+                  ? "Ganancia del Mes :" + " "
+                  : ""}
+                {categoria === "gastos" && "Gasto del Mes :" + " "}
+              </Typography>
+
+              <Typography
+                variant="h7"
+                sx={{ fontWeight: "bold", letterSpacing: 1 }}
+              >
+                {(categoria === "eventos" &&
+                  totales.eventsTotal?.toLocaleString("es-BO")) ||
+                  (categoria === "ingresoExtras" &&
+                    totales.ingresosTotal?.toLocaleString("es-BO")) ||
+                  (categoria === "gastos" &&
+                    totales.gastosTotal?.toLocaleString("es-BO"))}
+              </Typography>
+            </Paper>
+          </Box>
+        )}
       </Box>
       <TableContainer>
-        <Table sx={{ minWidth: 320 }}>
+        <Table sx={{ minWidth: 320, border: '1px solid #ddd', marginTop: 2 }}>
           <TableHead>
-            <TableRow>
+            <TableRow >
               {/* Encabezados según categoría */}
               {categoria === "eventos" && (
                 <>
                   <TableCell>Fecha</TableCell>
+                  <TableCell>Tipo</TableCell>
                   <TableCell> Venta(Bs) </TableCell>
-                  <TableCell> Gannacia en %(Bs) </TableCell>
+                  <TableCell> Paga </TableCell>
                   <TableCell>Propina (Bs)</TableCell>
                   <TableCell>Ganancia (Bs)</TableCell>
                 </>
@@ -178,6 +199,7 @@ const Resumen = ({ user }) => {
                 <>
                   <TableCell>Fecha</TableCell>
                   <TableCell>Concepto</TableCell>
+                  <TableCell>Detalle</TableCell>
                   <TableCell>Monto (Bs)</TableCell>
                 </>
               )}
@@ -187,6 +209,28 @@ const Resumen = ({ user }) => {
                   <TableCell>Tipo de Gasto</TableCell>
                   <TableCell>Detalle</TableCell>
                   <TableCell>Monto(Bs)</TableCell>
+                </>
+              )}
+              {categoria === "resumen" && (
+                <>
+                  <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>
+                    Fecha
+                  </TableCell>
+                  <TableCell sx={{ textAlign: "center" }}>
+                    Ganacia Eventos{" "}
+                  </TableCell>
+                  <TableCell sx={{ textAlign: "center" }}>
+                    Ganancia Extras
+                  </TableCell>
+                  <TableCell sx={{ textAlign: "center" }}>
+                    Total Generado
+                  </TableCell>
+                  <TableCell sx={{ textAlign: "center" }}>
+                    Gastos Realizados
+                  </TableCell>
+                  <TableCell sx={{ textAlign: "center" }}>
+                    Restante o Sobrante
+                  </TableCell>
                 </>
               )}
             </TableRow>
@@ -202,20 +246,22 @@ const Resumen = ({ user }) => {
             {datos
               .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
               .map((item) => (
-                <TableRow key={item.id}>
+                <TableRow key={item._id}>
                   {categoria === "eventos" && (
                     <>
                       <TableCell>{item.fecha}</TableCell>
+                      <TableCell>{item.tipo}</TableCell>
                       <TableCell>{item.ventaTotalGeneral}</TableCell>
-                      <TableCell>{item.gananciaPorcentaje}</TableCell>
+                      <TableCell>{item.paga}</TableCell>
                       <TableCell>{item.propina}</TableCell>
                       <TableCell>{item.gananciaGeneral}</TableCell>
                     </>
                   )}
                   {categoria === "ingresoExtras" && (
                     <>
-                      <TableCell>{item.concepto}</TableCell>
                       <TableCell>{item.fecha}</TableCell>
+                      <TableCell>{item.concepto}</TableCell>
+                      <TableCell>{item.detalle}</TableCell>
                       <TableCell>{item.monto}</TableCell>
                     </>
                   )}
@@ -225,6 +271,30 @@ const Resumen = ({ user }) => {
                       <TableCell>{item.concepto}</TableCell>
                       <TableCell>{item.detalle}</TableCell>
                       <TableCell>{item.monto}</TableCell>
+                    </>
+                  )}
+                  {categoria === "resumen" && (
+                    <>
+                      <TableCell
+                        sx={{ fontWeight: "bold", textAlign: "center" }}
+                      >
+                        {item.fecha}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {item.eventsTotal}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {item.ingresosTotal}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {item.totalGenerado}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {item.gastosTotal}
+                      </TableCell>
+                      <TableCell sx={{ textAlign: "center" }}>
+                        {item.restante}
+                      </TableCell>
                     </>
                   )}
                 </TableRow>

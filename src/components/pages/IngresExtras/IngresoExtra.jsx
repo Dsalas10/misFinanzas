@@ -14,7 +14,7 @@ const columns = [
   { id: "id", label: "#" },
   { id: "fecha", label: "Fecha" },
   { id: "concepto", label: "Concepto" },
-  {id:"detalle", label:"Detalle"},
+  { id: "detalle", label: "Detalle" },
   { id: "monto", label: "Monto" },
 ];
 const IngresoExtra = ({ user }) => {
@@ -52,8 +52,7 @@ const IngresoExtra = ({ user }) => {
       ...prev,
       [field]: value,
     }));
-  }
-
+  };
 
   const cargarIngresoExtraMesActual = useCallback(async () => {
     if (!user._id) {
@@ -89,7 +88,7 @@ const IngresoExtra = ({ user }) => {
       monto: monto,
       concepto: formData.concepto,
       detalle: formData.detalle || "-",
-      usuario: user._id
+      usuario: user._id,
     };
     try {
       const respo = await api.post("ingresoextra/nuevo", nuevoIngresoExtra);
@@ -99,8 +98,8 @@ const IngresoExtra = ({ user }) => {
         setFormData({
           fecha: getCurrentDate(),
           monto: "",
-          concepto:"Otros",
-          detalle:""
+          concepto: "Otros",
+          detalle: "",
         });
       } else {
         setError("Error al registrar en la BD en Ingreso Extra");
@@ -128,7 +127,6 @@ const IngresoExtra = ({ user }) => {
       } catch (error) {
         console.log("error en handleEliminarIngresoExtra", error);
       }
-      closeDialog();
     }
   };
 
@@ -158,10 +156,60 @@ const IngresoExtra = ({ user }) => {
   }
 
   return (
-    <Box sx={{ p: 1 }}>
-      <Typography variant="h4" gutterBottom textAlign={"center"} sx={{ pb: 2 }}>
-        Ingreso Extras
-      </Typography>
+    <Box sx={{ width: "100%", maxWidth: 1200, mx: "auto" ,backgroundColor:"#f5f5f5", p:2}}>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-evenly",
+          alignItems: "center",
+          mb: 2,
+        }}
+      >
+        <Typography
+          variant="h4"
+          gutterBottom
+          sx={{
+            mb: 1,
+            color: "primary.main",
+            fontSize: { xs: "1.2rem", sm: "2rem", md: "2.25rem" },
+          }}
+          textAlign={"center"}
+        >
+          Nuevo Registro
+        </Typography>
+        <Paper
+          elevation={3}
+          sx={{
+            p: { xs: 1, sm: 2, md: 3 },
+            background: "linear-gradient(90deg, #43cea2 0%, #185a9d 100%)",
+            color: "white",
+            borderRadius: 3,
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: "bold",
+              letterSpacing: 1,
+              fontSize: { xs: "0.9rem", sm: "1.2rem", md: "1.5rem" },
+            }}
+          >
+            {"Ingresos Extras:" + " "}
+            {ingresoExtra
+              .reduce((acc, item) => {
+                const valor = item.monto || 0;
+                return acc + valor;
+              }, 0)
+              .toLocaleString("es-BO")}
+            bs
+          </Typography>
+        </Paper>
+      </Box>
       {error && (
         <Typography color="error" sx={{ mb: 2 }}>
           {error}

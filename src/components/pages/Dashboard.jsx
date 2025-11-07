@@ -1,48 +1,117 @@
-import React, { useCallback, useState,useEffect } from "react";
-import { Typography, Paper, Grid, Box,CircularProgress } from "@mui/material";
-import{api} from "../utils/api.js"
-const Dashboard = ({user}) => {
+import React, { useCallback, useState, useEffect } from "react";
+import {
+  Typography,
+  Paper,
+  Grid,
+  Box,
+  CircularProgress,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
+import { api } from "../utils/api.js";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import MoneyOffIcon from "@mui/icons-material/MoneyOff";
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import SavingsIcon from "@mui/icons-material/Savings";
+
+const Dashboard = ({ user }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+
   const [totales, setTotales] = useState({
-    ganacias: "0.00",
+    eventos: "0.00",
     gastos: "0.00",
     restante: "0.00",
-    extras:"0.00"
+    extras: "0.00",
+    totalDinero: "0.00",
+    pendiente: "0.00",
   });
 
   const [loading, setLoading] = useState(true);
+  const [sobranteMesAnterior, setSobranteMesAnterior] = useState("0.00");
+  const mesActual = new Date().toLocaleDateString("es-ES", {
+    month: "long",
+    year: "numeric",
+  });
+  const fechaMesAnterior = new Date();
+  fechaMesAnterior.setMonth(fechaMesAnterior.getMonth() - 1);
+  const mesAnterior = fechaMesAnterior.toLocaleDateString("es-ES", {
+    month: "long",
+  });
+
+  const cardsMesActual = [
+    {
+      title: "Eventos",
+      value: totales.eventos,
+      color: "success.main",
+      icon: <TrendingUpIcon sx={{ fontSize: 25, color: "white" }} />,
+      bg: "linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)",
+    },
+    {
+      title: "Extras",
+      value: totales.extras,
+      color: "success.main",
+      icon: <AttachMoneyIcon sx={{ fontSize: 25, color: "white" }} />,
+      bg: "linear-gradient(135deg, #2196f3 0%, #42a5f5 100%)",
+    },
+    {
+      title: "Generado",
+      value: totales.totalDinero,
+      color: "success.main",
+      icon: <AccountBalanceWalletIcon sx={{ fontSize: 25, color: "white" }} />,
+      bg: "linear-gradient(135deg, #ff9800 0%, #ffb74d 100%)",
+    },
+    {
+      title: "Gastado",
+      value: totales.gastos,
+      color: "error.main",
+      icon: <MoneyOffIcon sx={{ fontSize: 25, color: "white" }} />,
+      bg: "linear-gradient(135deg, #f44336 0%, #ef5350 100%)",
+    },
+    {
+      title: "Sobrante mes" + " " + mesAnterior ,
+      value: sobranteMesAnterior || "0.00",
+      color: "text.primary",
+      icon: <SavingsIcon sx={{ fontSize: 25, color: "white" }} />,
+      bg: "linear-gradient(135deg, #607d8b 0%, #222c31ff 100%)",
+    },
+    {
+      title: "Paga Pendiente de Eventos ",
+      value: totales.pendiente || "0.00",
+      color: "text.primary",
+      icon: <SavingsIcon sx={{ fontSize: 25, color: "white" }} />,
+      bg: "linear-gradient(135deg, #9c27b0 0%, #bac868ff 100%)",
+    },
+    {
+      title: "Dinero Actual",
+      value: totales.restante + sobranteMesAnterior ,
+      color: "text.primary",
+      icon: <SavingsIcon sx={{ fontSize: 25, color: "white" }} />,
+      bg: "linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%)",
+    },
+  ];
 
   const cargarDatosMesActual = useCallback(async () => {
     if (!user._id) {
-      setVentas([]); // limpiar la lista si no hay usuario
       return;
     }
     try {
-      const respo1 = await api.get(`gastos/${user._id}`);
-      const resp2 = await api.get(`eventos/${user._id}`);
-      const respo3=await api.get(`ingresoextra/${user._id}`);
-      if (respo1.gastos && resp2.data,respo3.ingresosExtras ) {
-        let totalGastos = respo1.gastos.reduce(
-          (acc, gasto) => acc + parseFloat(gasto.monto),
-          0
-        )
-        let totalVentas = resp2.data.reduce(
-          (acc, venta) => acc + parseFloat(venta.gananciaGeneral),
-          0
-        )
-        let totalesIngresoExtra = respo3.ingresosExtras.reduce(
-          (acc, ingresoExtra) => acc + parseFloat(ingresoExtra.monto),
-          0
-        );
-        let restante = (totalVentas + totalesIngresoExtra) - totalGastos;
-        setTotales({
-          ganacias: totalVentas.toLocaleString("es-BO"),
-          gastos: totalGastos.toLocaleString("es-BO"),
-          extras: totalesIngresoExtra.toLocaleString("es-BO"),
-          restante: restante.toLocaleString("es-BO"),
-        });
-      }
+      setLoading(true);
+      const data = await api.get(`resumen/mes-actual/${user._id}`);
+      setTotales({
+        eventos: data.totals.eventsTotal.toLocaleString("es-BO"),
+        gastos: data.totals.gastosTotal.toLocaleString("es-BO"),
+        extras: data.totals.ingresosTotal.toLocaleString("es-BO"),
+        restante: data.totals.restante,
+        totalDinero: data.totals.totalGenerado.toLocaleString("es-BO"),
+        pendiente: data.totals.pendiente,
+      
+      });
+      const dataAnterior = await api.get(`resumen/mes-anterior/${user._id}`);
+      setSobranteMesAnterior(dataAnterior.totals.restante);
     } catch (error) {
-      console.error("Error al cargar los gastos:", error);
+      console.error("Error al cargar los datos:", error);
     } finally {
       setLoading(false);
     }
@@ -51,60 +120,76 @@ const Dashboard = ({user}) => {
   useEffect(() => {
     if (user._id) {
       cargarDatosMesActual();
-    } else {
-      setGastos([]);
     }
   }, [user._id, cargarDatosMesActual]);
 
+  if (loading) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
 
-
-   if (loading) {
-      return (
-        <Box sx={{ display: "flex", justifyContent: "center", p: 3 }}>
-          <CircularProgress />
-        </Box>
-      );
-    }
   return (
     <Box>
-      <Typography variant="h4" gutterBottom textAlign="center">
-        Dashboard
+      {/* Mes Actual */}
+      <Typography
+        variant="h5"
+        sx={{ mb: 2, textAlign: "center", fontWeight: "bold" }}
+      >
+        {mesActual}
       </Typography>
-      <Grid container spacing={3} justifyContent={"center"}>
-        <Grid sx={{ xs: 12, md: 6, lg: 3 }}>
-          <Paper sx={{ p: 3, textAlign: "center" }}>
-            <Typography variant="h6">Ganancias del Trabajo</Typography>
-            <Typography variant="h4" color="success.main">
-              {totales.ganacias} Bs
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid sx={{ xs: 12, md: 6, lg: 3 }}>
-          <Paper sx={{ p: 3, textAlign: "center" }}>
-            <Typography variant="h6">Dinero Extras</Typography>
-            <Typography variant="h4" color="success.main">
-              {totales.extras} Bs
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid sx={{ xs: 12, md: 6, lg: 3 }}>
-          <Paper sx={{ p: 3, textAlign: "center" }}>
-            <Typography variant="h6">Gastos Realizados</Typography>
-            <Typography variant="h4" color="error.main">
-              {totales.gastos} Bs
-            </Typography>
-          </Paper>
-        </Grid>
-        <Grid sx={{ xs: 12, md: 6, lg: 3 }}>
-          <Paper sx={{ p: 3, textAlign: "center" }}>
-            <Typography variant="h6">Dinero Sobrante</Typography>
-            <Typography variant="h4" color="text.primary">
-              {totales.restante} Bs
-            </Typography>
-          </Paper>
-        </Grid>
+
+      <Grid
+        container
+        spacing={isMobile ? 2 : 2}
+        justifyContent="center"
+        sx={{ mb: 3 }}
+      >
+        {cardsMesActual.map((card, index) => (
+          <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
+            <Paper
+              sx={{
+                p: isMobile ? 2 : 1,
+                textAlign: "center",
+                background: card.bg,
+                color: "white",
+                borderRadius: 3,
+                boxShadow: 3,
+                transition: "transform 0.3s",
+                "&:hover": {
+                  transform: "scale(1.05)",
+                },
+                minHeight: isMobile ? 100 : 140,
+                minWidth: isMobile ? 90 : 120,
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              {card.icon}
+              <Typography
+                variant={isMobile ? "subtitle1" : "h6"}
+                sx={{ mt: 1, fontWeight: "bold" }}
+              >
+                {card.title}
+              </Typography>
+              <Typography
+                variant={isMobile ? "h6" : "h4"}
+                sx={{ fontWeight: "bold" }}
+              >
+                {card.value} Bs
+              </Typography>
+            </Paper>
+          </Grid>
+        ))}
       </Grid>
+
+     
     </Box>
   );
 };
+
 export default Dashboard;

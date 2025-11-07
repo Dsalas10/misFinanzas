@@ -20,6 +20,7 @@ const FormGastos = React.memo(
     editando,
     handleCancelarEdit,
     openEditDialog,
+    disableAdd,
   }) => {
     const tiposGastos = [
       "Alquiler",
@@ -91,9 +92,11 @@ const FormGastos = React.memo(
               onClick={editando ? openEditDialog : handleOpenAddDialog}
               startIcon={editando ? <EditIcon /> : <AddIcon />}
               sx={{ px: 1, py: 1.5 }}
+              disabled={disableAdd && !editando}
             >
               {editando ? "Editar Gasto " : "Nuevo Gasto"}
             </Button>
+           
             {editando && (
               <Button
                 variant="contained"

@@ -6,7 +6,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
   IconButton,
   Tooltip,
   TablePagination,
@@ -15,8 +14,6 @@ import { useMemo, useState } from "react";
 import { memo } from "react";
 
 const ReusableTable = memo(({ columns, rows, action, loading = false }) => {
-    // console.log('ReusableTable se está renderizando con', rows.length, 'filas');
-
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
@@ -25,9 +22,11 @@ const ReusableTable = memo(({ columns, rows, action, loading = false }) => {
     const startIndex = page * rowsPerPage;
     return rows.slice(startIndex, startIndex + rowsPerPage);
   }, [rows, page, rowsPerPage]);
+
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
+
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -35,21 +34,13 @@ const ReusableTable = memo(({ columns, rows, action, loading = false }) => {
 
   return (
     <Box>
-      <TableContainer sx={{ mb: 4 }}>
+      <TableContainer sx={{ mb: 4, overflowX: "auto" }}>
         <Table
           stickyHeader
           sx={{
             width: "100%",
             tableLayout: "auto",
-            fontSize: { xs: 13, sm: 15 },
-            "& td, & th": {
-              padding: { xs: "6px 2px", sm: "8px 8px" },
-              fontSize: { xs: 13, sm: 15 },
-              wordBreak: "break-word",
-              whiteSpace: "pre-line",
-              maxWidth: { xs: 80, sm: 120 },
-              overflowWrap: "break-word",
-            },
+            fontSize: { xs: 12, sm: 14, md: 16 },
           }}
         >
           <TableHead>
@@ -80,9 +71,22 @@ const ReusableTable = memo(({ columns, rows, action, loading = false }) => {
               paginatedRows.map((row, rowIndex) => (
                 <TableRow key={row._id || row.id || rowIndex} hover>
                   {processedColumns.map((col) => {
-                    // console.log("col", row);
                     return (
-                      <TableCell key={col.id} align={col.align || "left"}>
+                      <TableCell
+                        key={col.id}
+                        align={col.align || "left"}
+                        sx={{
+                          color:
+                            col.id === "estadoPago"
+                              ? row.estadoPago === "pendiente"
+                                ? "#ee1111ff" // Amarillo para pendiente
+                                : row.estadoPago === "cancelado"
+                                ? "#058f25ff" // Verde para cancelado
+                                : "inherit" // Normal para otros
+                              : "inherit", // Normal para otras celdas
+                          
+                        }}
+                      >
                         {col.id === "id"
                           ? rows.indexOf(row) + 1
                           : row[col.id] || "-"}
@@ -96,7 +100,7 @@ const ReusableTable = memo(({ columns, rows, action, loading = false }) => {
                           <IconButton
                             size="small"
                             onClick={() => act.onClick(row)}
-                            sx={{ mr: 0.5 }} // Mejora: spacing entre botones
+                            sx={{ mr: 0.5 }}
                           >
                             {act.icon}
                           </IconButton>
@@ -134,5 +138,5 @@ const ReusableTable = memo(({ columns, rows, action, loading = false }) => {
     </Box>
   );
 });
-// ReusableTable.displayName = "ReusableTable"; // Para debugging
+
 export default ReusableTable;

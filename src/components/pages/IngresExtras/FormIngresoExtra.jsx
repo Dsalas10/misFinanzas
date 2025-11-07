@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   TextField,
@@ -6,21 +6,23 @@ import {
   Grid,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import { memo } from "react";
 const FormIngresoExtra = memo(
   ({ formData, handleInputChange, handleOpenAddDialog }) => {
+    const tipo = ["Prestamo", "Apuesta", "Giros", "Otros"];
 
-     const tipo = [
-      "Prestamo",
-      "Apuesta",
-      "Giros",
-      "Otros"
-    ];
+    const [errors, setErrors] = useState({ monto: false });
+    const validateForm = () => {
+      const newErrors = {
+        monto: !formData.monto || parseFloat(formData.monto) <= 0,
+      };
+      setErrors(newErrors);
+      return !newErrors.monto;
+    };
 
-  
     return (
       <>
         <Grid container spacing={2}>
@@ -37,23 +39,24 @@ const FormIngresoExtra = memo(
               <InputLabel>Concepto</InputLabel>
               <Select
                 value={formData.concepto}
-                onChange={(e)=>handleInputChange("concepto", e.target.value)}>
+                onChange={(e) => handleInputChange("concepto", e.target.value)}
+              >
                 {tipo.map((tipo, index) => (
                   <MenuItem key={index} value={tipo}>
                     {tipo}
                   </MenuItem>
                 ))}
-                </Select>
-                {formData.concepto === "Otros" && (
-                  <TextField
-                    fullWidth
-                    label="detalle"
-                    value={formData.detalle}
-                    onChange={(e) => handleInputChange("detalle", e.target.value)}
-                    required
-                    autoComplete="off"
-                  />
-                )}
+              </Select>
+              {formData.concepto === "Otros" && (
+                <TextField
+                  fullWidth
+                  label="detalle"
+                  value={formData.detalle}
+                  onChange={(e) => handleInputChange("detalle", e.target.value)}
+                  required
+                  autoComplete="off"
+                />
+              )}
               <TextField
                 fullWidth
                 label="Monto"
@@ -63,14 +66,19 @@ const FormIngresoExtra = memo(
                 placeholder="0.00"
                 required
                 autoComplete="off"
+                helperText={errors.monto ? "El monto debe ser mayor a 0" : ""} // Muestra error
+                error={errors.monto}
               />
-              
             </Box>
           </Grid>
           <Grid size={{ xs: 12 }}>
             <Button
               variant="contained"
-              onClick={handleOpenAddDialog}
+              onClick={() => {
+                if (validateForm()) {
+                  handleOpenAddDialog();
+                }
+              }}
               startIcon={<AddIcon />}
               sx={{ px: 4, py: 1.5, pb: 2 }}
             >

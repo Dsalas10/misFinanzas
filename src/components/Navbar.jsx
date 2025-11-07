@@ -5,17 +5,24 @@ import {
   Typography,
   Button,
   Box,
-  ClickAwayListener,
-  Paper,
+  IconButton,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+  useMediaQuery,
+  useTheme,
 } from "@mui/material";
-
+import MenuIcon from "@mui/icons-material/Menu";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const Navbar = ({ onLogout, user }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
 
-  const [showLogout, setShowLogout] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const menuItems = [
     { id: 1, text: "Dashboard", path: "/" },
@@ -27,24 +34,22 @@ const Navbar = ({ onLogout, user }) => {
 
   const handleNavigation = (path) => {
     navigate(path);
-  };
-
-  const handleToggle = () => {
-    setShowLogout((prev) => !prev);
-  };
-  const handleClose = () => {
-    setShowLogout(false);
+    setDrawerOpen(false);
   };
 
   const handleLogoutClick = () => {
-    handleClose();
+    setDrawerOpen(false);
     if (onLogout) onLogout();
     navigate("/login");
   };
 
+  const toggleDrawer = () => {
+    setDrawerOpen((prev) => !prev);
+  };
+
   return (
     <>
-      <AppBar position="static" sx={{ bgcolor: "primary.main" }}>
+      <AppBar position="static" sx={{ bgcolor: "primary.main"}}>
         <Toolbar sx={{ px: { xs: 1, sm: 2, md: 3 } }}>
           <Typography
             variant="h6"
@@ -58,94 +63,122 @@ const Navbar = ({ onLogout, user }) => {
           >
             Icono
           </Typography>
-          <Box
-            sx={{
-              display: "flex",
-              gap: { xs: 1, sm: 2, md: 3 },
-              alignItems: "center",
-            }}
-          >
+
+          {isMobile && (
+            <IconButton color="inherit" onClick={toggleDrawer} sx={{ mr: 1 }}>
+              <MenuIcon />
+            </IconButton>
+          )}
+
+          {!isMobile && (
+            <Box
+              sx={{
+                display: "flex",
+                gap: { xs: 1, sm: 2, md: 3 },
+                alignItems: "center",
+              }}
+            >
+              {menuItems.map((item) => (
+                <Typography
+                  key={item.id}
+                  variant="body1"
+                  onClick={() => handleNavigation(item.path)}
+                  sx={{
+                    cursor: "pointer",
+                    padding: { xs: "6px 8px", sm: "8px 8px", md: "6px 6px" },
+                    borderRadius: "14px",
+                    backgroundColor:
+                      location.pathname === item.path
+                        ? "primary.dark"
+                        : "transparent",
+                    color: "white",
+                    fontSize: { xs: "0.75rem", sm: "0.875rem", md: "1rem" },
+                    userSelect: "none",
+                    transition: "background-color 0.3s",
+                    "&:hover": {
+                      backgroundColor: "primary.light",
+                    },
+                    whiteSpace: "nowrap",
+                  }}
+                  noWrap
+                >
+                  {item.text}
+                </Typography>
+              ))}
+            </Box>
+          )}
+          {!isMobile && (
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 2,
+                marginLeft:2
+              }}
+            >
+              
+              <Button
+                variant="outlined"
+                color="inherit"
+                onClick={handleLogoutClick}
+                sx={{
+                  color: "white",
+                  borderColor: "white",
+                  "&:hover": {
+                    backgroundColor: "primary.light",
+                    borderColor: "white",
+                  },
+                }}
+              >
+                Cerrar sesión
+              </Button>
+            </Box>
+          )}
+        </Toolbar>
+      </AppBar>
+
+      <Drawer anchor="right" open={drawerOpen} onClose={toggleDrawer}>
+        <Box sx={{ width: 250, p: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>
+            Menú
+          </Typography>
+          <List>
+            <ListItem sx={{ mb: 2 }}>
+              <ListItemText primary={`Usuario: ${user.nombre}`} />
+            </ListItem>
             {menuItems.map((item) => (
-              <Typography
+              <ListItem
+                button
                 key={item.id}
-                variant="body1"
                 onClick={() => handleNavigation(item.path)}
                 sx={{
                   cursor: "pointer",
-                  padding: { xs: "6px 8px", sm: "8px 12px", md: "8px 16px" },
-                  borderRadius: "4px",
                   backgroundColor:
                     location.pathname === item.path
-                      ? "primary.dark"
+                      ? "primary.light"
                       : "transparent",
-                  color: "white",
-                  fontSize: { xs: "0.75rem", sm: "0.875rem", md: "1rem" },
-                  userSelect: "none",
-                  transition: "background-color 0.3s",
-                  "&:hover": {
-                    backgroundColor: "primary.light",
-                  },
-                  whiteSpace: "nowrap",
+                  borderRadius: 1,
+                  mb: 1,
                 }}
-                noWrap
               >
-                {item.text}
-              </Typography>
+                <ListItemText primary={item.text} />
+              </ListItem>
             ))}
-            <ClickAwayListener onClickAway={handleClose}>
-              <Box
-                sx={{
-                  position: "relative",
-                  cursor: "pointer",
-                  color: "white",
-                  userSelect: "none",
-                  padding: "6px 12px",
-                  borderRadius: "4px",
-                  "&:hover": {
-                    backgroundColor: "primary.light",
-                  },
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                }}
-                onClick={handleToggle}
-              >
-                <Typography noWrap>{user.nombre}</Typography>
-                {showLogout && (
-                  <Paper
-                    elevation={2}
-                    sx={{
-                      position: "absolute",
-                      top: "100%",
-                      mt: 0.5,
-                      minWidth: 10,
-                      bgcolor: "background.paper",
-                      color: "text.primary",
-                      borderRadius: 1,
-                      boxShadow:
-                        "0px 3px 5px -1px rgba(0,0,0,0.2), 0px 6px 10px 0px rgba(0,0,0,0.14), 0px 1px 18px 0px rgba(0,0,0,0.12)",
-                      zIndex: 10,
-                    }}
-                  >
-                    <Button
-                      fullWidth
-                      onClick={handleLogoutClick}
-                      sx={{
-                        justifyContent: "flex-start",
-                        textTransform: "none",
-                        padding: "8px 16px",
-                        color: "text.primary",
-                      }}
-                    >
-                      Cerrar sesión
-                    </Button>
-                  </Paper>
-                )}
-              </Box>
-            </ClickAwayListener>
-          </Box>
-        </Toolbar>
-      </AppBar>
+            <ListItem
+              button
+              onClick={handleLogoutClick}
+              sx={{
+                borderRadius: 1,
+                mb: 1,
+                color: "error.main",
+                cursor: "pointer",
+              }}
+            >
+              <ListItemText primary="Cerrar sesión" />
+            </ListItem>
+          </List>
+        </Box>
+      </Drawer>
     </>
   );
 };

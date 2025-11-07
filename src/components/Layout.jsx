@@ -10,8 +10,9 @@ const Layout = ({ user, onLogout }) => {
         sx={{
           display: "flex",
           flexDirection: "column",
-          minHeight: "100vh",
-          width: "100vw",
+          height: "100vh", 
+          width: "100vw", 
+          overflow: "hidden", 
         }}
       >
         <Navbar user={user} onLogout={onLogout} />
@@ -20,17 +21,16 @@ const Layout = ({ user, onLogout }) => {
           maxWidth={false}
           sx={{
             flex: 1,
-            mt: { xs: 2, md: 3 },
+            backgroundColor: "#f5f5f5",
+            overflowY: "auto", 
           }}
         >
           <Outlet />
-        </Container>
         <Box
           component="footer"
           sx={{
             py: 2,
             px: 3,
-            mt: "auto",
             backgroundColor: "grey.100",
             textAlign: "center",
           }}
@@ -39,8 +39,10 @@ const Layout = ({ user, onLogout }) => {
             © 2024 GestorFinanzas - Sistema de control financiero
           </Typography>
         </Box>
+        </Container>
       </Box>
     </>
   );
 };
+
 export default Layout;

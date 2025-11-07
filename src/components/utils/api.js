@@ -1,6 +1,7 @@
 // const BASE_URL = "https://backfinanza.onrender.com/api";
 const BASE_URL = "http://localhost:5000/api";
 
+
 const handleResponse = async (res) => {
   if (!res.ok) {
     const error = await res.json().catch(() => ({}));
