@@ -61,7 +61,7 @@ const FormIngresoExtra = memo(
                 fullWidth
                 label="Monto"
                 type="number"
-                value={formData.monto}
+                value={formData.monto || ""}
                 onChange={(e) => handleInputChange("monto", e.target.value)}
                 placeholder="0.00"
                 required

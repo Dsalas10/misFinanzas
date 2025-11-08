@@ -52,6 +52,8 @@ const IngresoExtra = ({ user }) => {
       ...prev,
       [field]: value,
     }));
+
+    console.log("Form Data actualizado:", { ...formData, [field]: value });
   };
 
   const cargarIngresoExtraMesActual = useCallback(async () => {
@@ -77,8 +79,11 @@ const IngresoExtra = ({ user }) => {
     cargarIngresoExtraMesActual();
   }, [cargarIngresoExtraMesActual]);
 
-  const handleAgregarIngresoExtra = useCallback(async () => {
+  const handleAgregarIngresoExtra = async () => {
+      console.log("FormData.monto antes de parsear:", formData.monto, "Tipo:", typeof formData.monto);
+
     const monto = parseFloat(formData.monto) || 0;
+    console.log("Monto a agregar:", monto);
     if (monto <= 0) {
       setError("Monto inválido");
       return;
@@ -94,7 +99,8 @@ const IngresoExtra = ({ user }) => {
       const respo = await api.post("ingresoextra/nuevo", nuevoIngresoExtra);
       if (respo && respo.ingresoExtra) {
         // setPrestamos((prev) => [...prev, respo.prestamo]);
-        setIngresoExtra((prev) => [...prev, respo.ingresoExtra]);
+        // setIngresoExtra((prev) => [...prev, respo.ingresoExtra]);
+        cargarIngresoExtraMesActual();
         setFormData({
           fecha: getCurrentDate(),
           monto: "",
@@ -109,7 +115,7 @@ const IngresoExtra = ({ user }) => {
       console.error("Error al agregar el Ingreso Extra:", error);
       setError("Error al agregar el Ingreso Extra");
     }
-  }, [user._id, closeDialog, getCurrentDate]);
+  };
 
   const handleEliminarIngresoExtra = async () => {
     if (dialogData) {

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import Layout from "./components/Layout";
@@ -29,16 +29,21 @@ const theme = createTheme({
 });
 
 function App() {
-  const [user, setUser] = useState(null);
+  // Inicializa el estado user directamente desde localStorage
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem("user");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
   const handleLogin = (userData) => {
-    console.log("handleLogin, userData:", userData);
     setUser(userData);
+    localStorage.setItem("user", JSON.stringify(userData));
   };
 
   const handleLogout = () => {
-  setUser ([]);
-  // Aquí también puedes limpiar localStorage o tokens si usas
-};
+    setUser(null);
+    localStorage.removeItem("user");
+    // Aquí también puedes limpiar tokens si usas
+  };
 
   console.log("user",user)
   // Componente para rutas protegidas

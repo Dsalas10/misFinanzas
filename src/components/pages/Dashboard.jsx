@@ -42,11 +42,25 @@ const Dashboard = ({ user }) => {
 
   const cardsMesActual = [
     {
+      title: "Dinero Actual",
+      value: totales.restante + sobranteMesAnterior ,
+      color: "text.primary",
+      icon: <SavingsIcon sx={{ fontSize: 25, color: "white" }} />,
+      bg: "linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%)",
+    },
+    {
       title: "Eventos",
       value: totales.eventos,
       color: "success.main",
       icon: <TrendingUpIcon sx={{ fontSize: 25, color: "white" }} />,
       bg: "linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)",
+    },
+     {
+      title: "Paga Pendiente de Eventos ",
+      value: totales.pendiente || "0.00",
+      color: "text.primary",
+      icon: <SavingsIcon sx={{ fontSize: 25, color: "white" }} />,
+      bg: "linear-gradient(135deg, #9c27b0 0%, #bac868ff 100%)",
     },
     {
       title: "Extras",
@@ -76,20 +90,8 @@ const Dashboard = ({ user }) => {
       icon: <SavingsIcon sx={{ fontSize: 25, color: "white" }} />,
       bg: "linear-gradient(135deg, #607d8b 0%, #222c31ff 100%)",
     },
-    {
-      title: "Paga Pendiente de Eventos ",
-      value: totales.pendiente || "0.00",
-      color: "text.primary",
-      icon: <SavingsIcon sx={{ fontSize: 25, color: "white" }} />,
-      bg: "linear-gradient(135deg, #9c27b0 0%, #bac868ff 100%)",
-    },
-    {
-      title: "Dinero Actual",
-      value: totales.restante + sobranteMesAnterior ,
-      color: "text.primary",
-      icon: <SavingsIcon sx={{ fontSize: 25, color: "white" }} />,
-      bg: "linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%)",
-    },
+   
+    
   ];
 
   const cargarDatosMesActual = useCallback(async () => {

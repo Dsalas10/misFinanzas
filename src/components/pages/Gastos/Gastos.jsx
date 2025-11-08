@@ -16,7 +16,8 @@ import { api } from "../../utils/api";
 const columns = [
   { id: "id", label: "#" },
   { id: "fecha", label: "Fecha" },
-  { id: "concepto", label: "Tipo de Gasto" },
+  { id: "concepto", label: "Concepto" },
+  {id:"detalle", label:"Detalle"},
   { id: "monto", label: "Monto Gastado" },
   // { id: "total", label: "Total" },
 ];
@@ -103,18 +104,23 @@ const Gastos = ({ user }) => {
       usuarioId: user._id,
       fecha: formData.fecha || getCurrentDate(),
       monto: monto,
+      detalle: formData.detalle || "-",
       concepto: formData.tipo,
     };
     try {
       const response = await api.post("nuevoGasto", nuevoGasto);
       if (response.gasto) {
-        await cargarGastosMesActual(); // recarga la tabla y totales desde backend
+        await cargarGastosMesActual(); 
+        // setGastos((prevGastos) => [...prevGastos, response.gasto]);
+        setFormData({
+          fecha: getCurrentDate(),
+          monto: "",
+          tipo: "Otros",
+        });
       }
-      setFormData({
-        fecha: getCurrentDate(),
-        monto: "",
-        tipo: "Otros",
-      });
+       else {
+        setError("Error al registrar en la BD el nuevo Gasto");
+      }
       closeDialog();
     } catch (error) {
       console.error("Error al agregar el gasto:", error);
@@ -129,7 +135,10 @@ const Gastos = ({ user }) => {
       };
       try {
         await api.delete("gastos/eliminar", data);
-        await cargarGastosMesActual(); // recarga la tabla y totales desde backend
+        // await cargarGastosMesActual();
+        setGastos((prevGastos) =>
+          prevGastos.filter((gasto) => gasto._id !== dialogData._id)
+        );
         closeDialog();
       } catch (error) {
         console.error("Error al eliminar gasto:", error);

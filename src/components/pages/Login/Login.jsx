@@ -16,12 +16,16 @@ const Login = ({ onLogin }) => {
     }
     try {
       const response = await api.post("login", { username, password });
-      // console.log("Login response:", response);
+      console.log("Login response:", response);
       if (response.error) {
         setError(response.error);
       }
       if (response.resultado) {
+        // Si el backend solo devuelve _id y nombre, pide que devuelva el usuario completo
+        // Aquí guardamos el usuario completo y el token
         onLogin(response.resultado.usuario);
+        localStorage.setItem("user", JSON.stringify(response.resultado.usuario));
+        localStorage.setItem("token", response.resultado.token);
         navigate("/", { replace: true });
       }
     } catch (error) {
