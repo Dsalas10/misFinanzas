@@ -45,7 +45,7 @@ function App() {
     // Aquí también puedes limpiar tokens si usas
   };
 
-  console.log("user",user)
+  // console.log("user",user)
   // Componente para rutas protegidas
   const PrivateRoute = ({ children }) => {
     return user ? children : <Navigate to="/login" replace />;

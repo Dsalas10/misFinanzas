@@ -162,7 +162,7 @@ const IngresoExtra = ({ user }) => {
   }
 
   return (
-    <Box sx={{ width: "100%", maxWidth: 1200, mx: "auto" ,backgroundColor:"#f5f5f5", p:2}}>
+    <Box sx={{ p:2}}>
       <Box
         sx={{
           display: "flex",
