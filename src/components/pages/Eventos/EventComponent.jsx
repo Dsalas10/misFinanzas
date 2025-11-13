@@ -184,9 +184,9 @@ const EventComponent = ({ user }) => {
     };
     try {
       const resp = await api.post("eventos/nuevoEvento", nuevaVenta);
-      if (!resp.data) {
-        console.log(resp.mensaje);
-      }
+      // if (!resp.data) {
+      //   console.log(resp.mensaje);
+      // }
       // setVentas((prev) => [...prev, resp.data]);
       cargarEventoMesActual();
       setFormData({

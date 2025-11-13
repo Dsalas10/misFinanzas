@@ -57,10 +57,10 @@ const Resumen = ({ user }) => {
       const response = await api.get(
         `resumen/mes-seleccionado/${user._id}/${mes}`
       );
-      console.log("RESPONSE:", response);
+      // console.log("RESPONSE:", response);
       setTotales(response.totals || []);
       if (categoria === "eventos") {
-        console.log("response eventos", response.eventos);
+        // console.log("response eventos", response.eventos);
         setDatos(response.data.eventos || []);
         setPage(0);
       } else if (categoria === "gastos") {
