@@ -53,7 +53,6 @@ const IngresoExtra = ({ user }) => {
       [field]: value,
     }));
 
-    console.log("Form Data actualizado:", { ...formData, [field]: value });
   };
 
   const cargarIngresoExtraMesActual = useCallback(async () => {
@@ -80,10 +79,8 @@ const IngresoExtra = ({ user }) => {
   }, [cargarIngresoExtraMesActual]);
 
   const handleAgregarIngresoExtra = async () => {
-      console.log("FormData.monto antes de parsear:", formData.monto, "Tipo:", typeof formData.monto);
 
     const monto = parseFloat(formData.monto) || 0;
-    console.log("Monto a agregar:", monto);
     if (monto <= 0) {
       setError("Monto inválido");
       return;
