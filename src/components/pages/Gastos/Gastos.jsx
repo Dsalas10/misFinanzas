@@ -17,7 +17,7 @@ const columns = [
   { id: "id", label: "#" },
   { id: "fecha", label: "Fecha" },
   { id: "concepto", label: "Concepto" },
-  {id:"detalle", label:"Detalle"},
+  { id: "detalle", label: "Detalle" },
   { id: "monto", label: "Monto Gastado" },
   // { id: "total", label: "Total" },
 ];
@@ -76,7 +76,10 @@ const Gastos = ({ user }) => {
       const dataTotalGenerado = await api.get(
         `resumen/total-generado/${user._id}`
       );
-      setTotalGenerado(dataTotalGenerado.totalGenerado);
+      const {totals} = await api.get(
+        `resumen/mes-anterior/${user._id}`
+      );
+      setTotalGenerado(dataTotalGenerado.totalGenerado + totals.restante);
     } catch (error) {
       console.error("Error al cargar los gastos:", error);
     } finally {
@@ -110,15 +113,14 @@ const Gastos = ({ user }) => {
     try {
       const response = await api.post("nuevoGasto", nuevoGasto);
       if (response.gasto) {
-        await cargarGastosMesActual(); 
+        await cargarGastosMesActual();
         // setGastos((prevGastos) => [...prevGastos, response.gasto]);
         setFormData({
           fecha: getCurrentDate(),
           monto: "",
           tipo: "Otros",
         });
-      }
-       else {
+      } else {
         setError("Error al registrar en la BD el nuevo Gasto");
       }
       closeDialog();

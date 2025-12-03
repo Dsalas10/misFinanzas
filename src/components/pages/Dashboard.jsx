@@ -70,14 +70,14 @@ const Dashboard = ({ user }) => {
       bg: "linear-gradient(135deg, #2196f3 0%, #42a5f5 100%)",
     },
     {
-      title: "Generado",
+      title: "Generado(Mes Actual)",
       value: totales.totalDinero,
       color: "success.main",
       icon: <AccountBalanceWalletIcon sx={{ fontSize: 25, color: "white" }} />,
       bg: "linear-gradient(135deg, #ff9800 0%, #ffb74d 100%)",
     },
     {
-      title: "Gastado",
+      title: "Gastado(Mes Actual)",
       value: totales.gastos,
       color: "error.main",
       icon: <MoneyOffIcon sx={{ fontSize: 25, color: "white" }} />,
