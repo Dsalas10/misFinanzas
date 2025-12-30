@@ -11,7 +11,7 @@ import { api } from "../../utils/api";
 const columns = [
   {
     id: "fecha",
-    label: "Fecha"
+    label: "Fecha",
   },
   { id: "tipo", label: "Tipo" },
   { id: "ventaTotalGeneral", label: "Venta" },
@@ -183,11 +183,7 @@ const EventComponent = ({ user }) => {
       usuario: user._id,
     };
     try {
-      const resp = await api.post("eventos/nuevoEvento", nuevaVenta);
-      // if (!resp.data) {
-      //   console.log(resp.mensaje);
-      // }
-      // setVentas((prev) => [...prev, resp.data]);
+      await api.post("eventos/nuevoEvento", nuevaVenta);
       cargarEventoMesActual();
       setFormData({
         fecha: getCurrentDate(),
@@ -236,7 +232,7 @@ const EventComponent = ({ user }) => {
     console.log("row", row);
     setFormData({
       fecha: row.fecha || getCurrentDate(),
-      montoSistema: row.ventaTotalGeneral || "",
+      montoSistema: row.ventaTotalGeneral - row.pagoRecibo || "",
       incluirReciboEnVenta: row.incluirReciboEnVenta || false,
       contarReciboComoPago: row.contarReciboComoPago || false,
       pagafijocheck: row.pagafijocheck || false,
@@ -249,7 +245,7 @@ const EventComponent = ({ user }) => {
       pagoEfectivo: row.pagoEfectivo || "0.00",
       propina: row.propina || "",
       porcentaje: row.porcentaje || "5",
-      _id: row._id, // Necesario para identificar qué evento se está editando
+      _id: row._id, 
       usuario: user._id,
     });
     setEditando(true);

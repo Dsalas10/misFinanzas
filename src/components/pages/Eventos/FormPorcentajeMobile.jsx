@@ -9,10 +9,11 @@ import {
   Checkbox,
   InputAdornment,
   Button,
-    FormLabel,
-    RadioGroup,
-    Radio,
-    
+  FormLabel,
+  RadioGroup,
+  Radio,
+  FormControl,
+  FormHelperText,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import PagoDialogInput from "./PagoDialogInput";
@@ -160,7 +161,11 @@ const FormPorcentajeMobile = ({
           onChange={(e) => handleInputChange("propina", e.target.value)}
           placeholder="0.00"
         />
-        <Box sx={{ border: "1px solid #ccc", p: 1, borderRadius: 1 }}>
+        <FormControl
+          component={Box}
+          error={Boolean(errors.estadoPago)} // activa el estilo de error
+          sx={{ border: "1px solid #ccc", p: 1, borderRadius: 1 }}
+        >
           <FormLabel sx={{ fontSize: "0.8rem" }}>Estado de Pago</FormLabel>
           <RadioGroup
             row
@@ -178,7 +183,11 @@ const FormPorcentajeMobile = ({
               label={<span style={{ fontSize: "0.8rem" }}>Pendiente</span>}
             />
           </RadioGroup>
-        </Box>
+
+          {errors.estadoPago && (
+            <FormHelperText>Selecciona estado de pago</FormHelperText>
+          )}
+        </FormControl>
         <Box textAlign={"center"} m={1}>
           <Button
             variant="contained"

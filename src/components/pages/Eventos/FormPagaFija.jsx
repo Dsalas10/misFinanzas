@@ -6,6 +6,12 @@ import {
   MenuItem,
   InputLabel,
   Button,
+  FormControl,
+  FormHelperText,
+  FormLabel,
+  RadioGroup,
+  Radio,
+  FormControlLabel,
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -17,6 +23,7 @@ const FormPagaFija = ({
   editando,
   onCancelEdit,
   handleOpenAddDialog,
+  openEditDialog
 }) => {
   return (
     <Box
@@ -79,6 +86,33 @@ const FormPagaFija = ({
           onChange={(e) => handleInputChange("propina", e.target.value)}
           placeholder="0.00"
         />
+        <FormControl
+          component={Box}
+          error={Boolean(errors.estadoPago)} // activa el estilo de error
+          sx={{ border: "1px solid #ccc", p: 1, borderRadius: 1 }}
+        >
+          <FormLabel sx={{ fontSize: "0.8rem" }}>Estado de Pago</FormLabel>
+          <RadioGroup
+            row
+            value={formData.estadoPago || ""}
+            onChange={(e) => handleInputChange("estadoPago", e.target.value)}
+          >
+            <FormControlLabel
+              value="cancelado"
+              control={<Radio size="small" />}
+              label={<span style={{ fontSize: "0.8rem" }}>Cancelado</span>}
+            />
+            <FormControlLabel
+              value="pendiente"
+              control={<Radio size="small" />}
+              label={<span style={{ fontSize: "0.8rem" }}>Pendiente</span>}
+            />
+          </RadioGroup>
+
+          {errors.estadoPago && (
+            <FormHelperText>Selecciona estado de pago</FormHelperText>
+          )}
+        </FormControl>
         <Box textAlign={"center"} mt={2}>
           <Button
             variant="contained"

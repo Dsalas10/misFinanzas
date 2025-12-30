@@ -13,7 +13,9 @@ import {
   Typography,
   RadioGroup,
   FormLabel,
-  Radio
+  Radio,
+  FormControl,
+  FormHelperText,
 } from "@mui/material";
 
 import AddIcon from "@mui/icons-material/Add";
@@ -151,6 +153,7 @@ const FormEvento = ({
             editando={editando}
             onCancelEdit={onCancelEdit}
             handleOpenAddDialog={handleOpenAddDialog}
+            openEditDialog={openEditDialog}
           />
         ) : formData.pagaporcentajecheck ? (
           isMobile ? (
@@ -348,20 +351,24 @@ const FormEvento = ({
                     placeholder="0.00"
                   />
 
-                  <Box sx={{ border: "1px solid #ccc", p: 1, borderRadius: 1 }}>
+                  <FormControl
+                    component={Box}
+                    error={Boolean(errors.estadoPago)} // activa el estilo de error
+                    sx={{ border: "1px solid #ccc", p: 1, borderRadius: 1 }}
+                  >
                     <FormLabel sx={{ fontSize: "0.8rem" }}>
                       Estado de Pago
                     </FormLabel>
                     <RadioGroup
-                      row 
-                      value={formData.estadoPago || ""} 
+                      row
+                      value={formData.estadoPago || ""}
                       onChange={(e) =>
                         handleInputChange("estadoPago", e.target.value)
                       }
                     >
                       <FormControlLabel
                         value="cancelado"
-                        control={<Radio size="small" />} 
+                        control={<Radio size="small" />}
                         label={
                           <span style={{ fontSize: "0.8rem" }}>Cancelado</span>
                         }
@@ -374,7 +381,11 @@ const FormEvento = ({
                         }
                       />
                     </RadioGroup>
-                  </Box>
+
+                    {errors.estadoPago && (
+                      <FormHelperText>Selecciona estado de pago</FormHelperText>
+                    )}
+                  </FormControl>
                   <Box textAlign={"center"} m={1}>
                     <Button
                       variant="contained"

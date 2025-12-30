@@ -32,6 +32,15 @@ const ReusableTable = memo(({ columns, rows, action, loading = false }) => {
     setPage(0);
   };
 
+  const formatFecha=(value)=>{
+    if(!value) return "-";
+    const d=new Date(value)
+    return d.toLocaleDateString("es-ES",{
+      month:"2-digit",
+      day:"2-digit"
+        })
+  }
+
   return (
     <Box>
       <TableContainer sx={{ mb: 4, overflowX: "auto" }}>
@@ -89,6 +98,8 @@ const ReusableTable = memo(({ columns, rows, action, loading = false }) => {
                       >
                         {col.id === "id"
                           ? rows.indexOf(row) + 1
+                          : col.id === "fecha"
+                          ? formatFecha(row[col.id])
                           : row[col.id] || "-"}
                       </TableCell>
                     );
